@@ -48,12 +48,12 @@ trợ lý có đang gây thiệt hại cho bên ngoài LogiX không; không có 
 
 | | Offline, cho MỘT bước (câu 1.3) | Telemetry production (câu 1.4) |
 |---|---|---|
-| **Bước / hành vi được đo** | | |
-| **Thước đo** (một câu, có đơn vị) | | |
-| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | | |
+| **Bước / hành vi được đo** | Bước **ghi lỗi hãng** (`file_carrier_fault`): agent quyết định có ghi lỗi cho hãng vận chuyển hay không, và ghi cho kiện nào, hãng nào | |
+| **Thước đo** (một câu, có đơn vị) | **Tỉ lệ ghi lỗi oan**: số dòng lỗi hãng ghi sai (sai hãng, sai kiện, hoặc ca đáng ra không được ghi lỗi) trên 100 dòng lỗi hãng agent đã ghi (đơn vị: dòng sai / 100 dòng ghi). Số phụ đi kèm: **tỉ lệ bỏ sót** (lỗi đáng ghi mà agent không ghi, trên 100 lỗi đáng ghi) | |
+| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | Dòng `fault_rows` (`carrier_id`, `parcel_id`) và sự kiện `tool: file_carrier_fault` trong `runs/<mã lần chạy>/traces/<ticket>@<seed>.json`; nhãn là `label.faults` trong `data/tickets.jsonl`, đối chiếu với `delay_cause` của kiện trong `data/world.json` → `orders[].parcels` và `fault_causes` của chính sách đang hiệu lực. Bộ nền có 22 ticket × 5 seed = 110 lần chạy. Nhãn do người soạn lab gán; ở pilot thật, nhãn đến từ đối soát hằng tuần của chị Oanh (kế toán) với hãng, và từ khiếu nại của hãng | |
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | So khớp chính xác cặp (`carrier_id`, `parcel_id`). **Ghi oan** = số dòng trong `fault_rows` không khớp cặp nào trong `label.faults` của ticket đó; một dòng ghi lặp cùng cặp cũng tính là oan. **Tỉ lệ ghi oan** = ghi oan / tổng số dòng `fault_rows` × 100. **Bỏ sót** = số cặp trong `label.faults` không có trong `fault_rows`, chỉ đếm ở lần chạy có `status` khác `escalated`. **Tỉ lệ bỏ sót** = bỏ sót / tổng số cặp trong nhãn của các lần chạy đó × 100. Lần chạy bị chuyển người, hoặc bị cổng chặn trước bước ghi, không vào mẫu số mà được đếm riêng thành "số lần không tới bước ghi lỗi". Mẫu số bằng 0 thì báo "không đủ dữ liệu", không báo 0% | |
 | **Khung thời gian / ngưỡng báo động** | (không áp dụng) | |
-| **Điểm mù** (thước đo này KHÔNG thấy gì) | | |
+| **Điểm mù** (thước đo này KHÔNG thấy gì) | (1) Không thấy chính dữ liệu tracking sai, ví dụ `delay_cause` bị ghi nhầm thành `CARRIER`: lúc đó nhãn cũng sai theo. (2) Đếm mọi dòng như nhau, không thấy mức hậu quả khác nhau: GHSH bị đình chỉ sau 3 lỗi trong 7 ngày, phạt 150.000đ mỗi lỗi; VNX tới 10 lỗi mới bị đình chỉ. (3) Không thấy lỗi tích luỹ trong ngày (trần 2 lỗi mỗi hãng mỗi ngày trong `ops_limits`). (4) Không thấy dữ liệu cá nhân gửi kèm ở bước `notify_carrier` | |
 
 **Ví dụ mẫu (bước "chọn độ trễ" của agent, đừng chép):**
 Thước đo: tỉ lệ lần chạy mà độ trễ agent dùng để tính tiền khác độ trễ theo tracking DB. Dữ liệu: sự kiện `proposal.delay_days_used`

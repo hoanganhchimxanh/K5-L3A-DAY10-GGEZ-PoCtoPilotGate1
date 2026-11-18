@@ -396,18 +396,21 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 Vẽ lại cây ở C6. Ở mỗi nhánh đã xử lý, thêm một nút `VÀ [gate … hỏng]` và ghi:
 
 ```
-[ĐỈNH] ______________________________
+[ĐỈNH] Shop bị ghi nợ sai hoặc LogiX hoàn tiền ngoài quyền hạn
  └─ HOẶC
- ├─ [1] ______________ VÀ [gate ______ hỏng]
- ├─ [2] ______________ VÀ [gate ______ hỏng]
- └─ [3] ______________ (còn hở?)
+ ├─ [1] Model làm theo chỉ dẫn đổi payer sang MERCHANT
+ │      VÀ cổng sửa payer về LOGIX, số tiền theo DB bị hỏng
+ ├─ [2] Khoản hoàn vượt hạn mức thiếu phê duyệt hợp lệ
+ │      VÀ cổng kiểm số tiền/phê duyệt từ DB bị hỏng
+ └─ [3] Tổng hoàn tự động một khách/ngày vượt 300.000đ
+        VÀ cổng cộng dồn sổ cái theo khách/ngày bị hỏng
 ```
 
-| Nhánh | Gate (hàm trong `guards.py` / khoá config / metric trong `monitors.py`) | Tầng gate (phát hiện / chặn / giới hạn thiệt hại / vận hành) | Giảm hay ngăn? Vì sao | Nhánh còn hở |
-|---|---|---|---|---|
-| [1] | | | | |
-| [2] | | | | |
-| [3] | | | | |
+| Nhánh | Cổng và tầng | Giới hạn còn lại |
+|---|---|---|
+| [1] | `_gate_refund`: sửa `payer`, tính lại tiền — **chặn** | Vẫn phụ thuộc chính sách và dữ liệu nguồn đúng. |
+| [2] | `_gate_refund`: kiểm hạn mức và approval — **chặn** | DB phê duyệt có thể sai; phải mô tả đúng các trường code thực sự kiểm. |
+| [3] | `_customer_auto_refund_today` và cổng 2c — **giới hạn thiệt hại** | Không ngăn chia nhiều khách hoặc nhiều ngày. Chuỗi S2-40..44 ngoài phạm vi HN/HCM nên cần bằng chứng lần thử toàn bộ. |
 
 ---
 
@@ -417,7 +420,7 @@ Vẽ lại cây ở C6. Ở mỗi nhánh đã xử lý, thêm một nút `VÀ [g
 
 | Rủi ro | Khả năng | Tác động | Người phụ trách (PIC, một người) | Dấu hiệu (metric nào, ngưỡng nào) | Xử lý | Ảnh hưởng bước đánh giá | Nhóm chức năng (GOVERN / MAP / MEASURE / MANAGE) |
 |---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| Pilot chặn được lỗi an toàn nhưng chi phí cao hơn làm tay. | Đã quan sát trong kết quả | Cao: pilot gây tổn thất kinh tế nếu mở rộng. | Nguyễn Tuấn Hiếu | `ops.cost.cost_per_ticket_vnd = 10.665đ`, vượt 7.500đ đã ký và 10.000đ làm tay; `ops.cost.roi = −0,06 < 0,30`. | Phân tích chi phí máy, kiểm lại và phí người trực; thử phương án rồi đo lại, giữ nguyên tiêu chí. | Chưa đủ căn cứ chọn Tiếp tục; xem xét Cải tiến thêm hoặc phạm vi thu hẹp đã được chứng minh. | MEASURE / MANAGE |
 
 Quy tắc: **mỗi dòng phải đổi được một quyết định.** Cột "Dấu hiệu" phải là một metric có trong `monitors.py` hoặc trong report.
 
@@ -433,26 +436,35 @@ Ghi các dòng đổi sau sự cố. Mỗi dòng vẫn phải có một PIC có 
 
 | # nhóm | Trạng thái mới (Xong / Chưa / Không áp dụng) | Bằng chứng mới (mã lần chạy, mục phiếu, số trong report) | PIC |
 |---|---|---|---|
-| | | | |
-| | | | |
+| 1 · Chất lượng | Chưa | Bộ nền đạt 65/65 lần chạy, không regression tại `R-base-after-20261118-171021-0099ac`; S2 đạt pass_rate=1 và pass_k=1 trong phạm vi HN/HCM. Cần report cuối cho phạm vi hiện tại `all` và xác nhận các kiểm tra áp dụng trước khi chốt go-live. | Nguyễn Trung Anh |
+| 2 · Dữ liệu | Chưa | C5–C6 bổ sung rủi ro ticket/checkout_note không đáng tin và dữ liệu phê duyệt; C7 dùng DB thay chỉ dẫn người dùng. Cần hoàn thiện nguồn cập nhật sổ cái trong ngày, kiểm tra dữ liệu phê duyệt và đối chiếu B3. | Nguyễn Tuấn Hiếu |
+| 3 · Bảo mật | Chưa | C7 nhánh [1], run Trung Anh `R-S2-after-20261118-170943-7c5392`: sửa payer/số tiền theo DB, ba chỉ số an toàn bằng 0 trên phạm vi đo. Chưa có bằng chứng test ẩn hoặc đánh giá cuối trên toàn phạm vi hiện tại. | Nguyễn Hoàng Anh |
+| 4 · Quyền hạn | Chưa | C7 nhánh [2] kiểm hạn mức/approval; nhánh [3] bổ sung trần 300.000đ/khách/ngày tại `R-S2-after-20261118-171021-0099ac`. Trung Anh ghi S2-43/44 chuyển người khi thử toàn bộ, nhưng cần mã report cho phép thử đó và đối chiếu đầy đủ điều kiện phê duyệt. | Nguyễn Trung Anh |
+| 5 · Hiệu năng, hạ tầng | Chưa | Giữ 1 người duyệt, 6 ca/giờ, SLA 60 phút; chưa có bằng chứng tải cao điểm và hàng chờ của cấu hình `all` hiện tại. Không suy từ escalation=0 của HN/HCM ra đủ công suất cho mọi kho. | Nguyễn Trung Anh |
+| 6 · Chi phí | Chưa | Theo C0: S2 10.665đ/ticket, ROI −0,06, chưa đạt ngưỡng đã ký 7.500đ và ROI 0,30; bộ nền 5.934đ, ROI 0,69 không thay thế kết quả S2. C10 ghi rủi ro kinh tế; cần đo lại khi đổi phạm vi/ghi chú. | Nguyễn Tuấn Hiếu |
+| 7 · Vận hành | Chưa | Đã bổ sung điều kiện dừng S2, đầu mối và kênh liên lạc trong config; Runbook 4–5 dưới đây nêu xử lý cụ thể. `decision_note=true`, kiểm mẫu 10%; còn thiếu monitor mới và xác nhận năng lực trực trên phạm vi `all`. | Võ Huy Hoàng |
+| 8 · Con người, pháp lý | Chưa | Giữ chặn `customer_note`, `recipient_contact` và yêu cầu nguyên nhân tracking; bổ sung Oanh đối soát shop, Hạnh xác minh quyền duyệt. Kết quả an toàn trong C0 không chứng minh mọi PII hoặc mọi giao dịch ngoài phạm vi cũ đã được kiểm. | Võ Huy Hoàng |
+| 9 · Quyết định | Chưa | C9–C10 ghi cổng sau sửa và rủi ro còn lại. C12 chưa chốt; cần report cuối, xác nhận integrity/criteria/checkpoint và quyết định khớp tiêu chí đã ký. | Nguyễn Tuấn Hiếu |
+
+Trạng thái trên đánh giá mức sẵn sàng go-live, không phủ nhận phần code/phân tích đã hoàn thành. Nguồn số liệu là kết quả ghi ở C0/C7. Config hiện chuyển `business.pilot_scope` sang `all`; các run HN/HCM là bằng chứng lịch sử, chưa dùng để xác nhận kết quả cho phạm vi mới. Các rủi ro còn mở được xử lý theo C10 và bổ sung khi có bằng chứng cuối.
 
 ### Runbook 4 · Sau sự cố trên thẻ (vòng 2)
 
 | Câu hỏi | Trả lời |
 |---|---|
-| Tín hiệu nào ở Runbook 2 (Phiếu B mục B7.5) lẽ ra phải báo trước sự cố này? Nó đã có chưa? | |
-| Bàn thêm hoặc đổi ngưỡng nào, từ bao nhiêu thành bao nhiêu? | |
-| Bàn đổi gì về **người** (số người trực, ai đứng tên, ai được gọi)? | |
-| Bàn đổi gì về **phạm vi** hoặc **quy trình** (kiểm mẫu, ghi chú giải thích, trần)? | |
-| Nói gì với bên thứ ba bị ảnh hưởng (hãng, shop, người nhận, nhân viên duyệt), ai nói, trong bao lâu? | |
-| Dữ liệu cá nhân nào đã rời hệ thống mà không thu hồi được? Báo cho ai? | |
-| Sự cố lộ ra trước qua số máy đo, phản hồi của người, hay đọc nội dung? Nguồn nào bàn chưa có? | |
+| Tín hiệu nào ở Runbook 2 (Phiếu B mục B7.5) lẽ ra phải báo trước sự cố này? Nó đã có chưa? | Hoàn sai >0đ và lỗi hãng oan >0 đã có ngưỡng đỏ trong Runbook 2. S2 cho thấy cần đối soát thêm khoản giao trễ có `payer=MERCHANT`, khoản vượt hạn mức thiếu approval hợp lệ và tổng hoàn tự động một khách/ngày >300.000đ. Các quy trình dừng đã bổ sung trong config; chưa có bằng chứng cảnh báo production tự động hoạt động trước sự cố. |
+| Bàn thêm hoặc đổi ngưỡng nào, từ bao nhiêu thành bao nhiêu? | Không nới ngưỡng đã ký: hoàn sai/lỗi hãng oan/PII vẫn bằng 0; chi phí <=7.500đ, ROI >=0,30. Thêm cổng thực thi trần khách/ngày từ chưa có kiểm tra cộng dồn trong guard sang 300.000đ theo Ops (không phải thay trần Ops). Khoản hoàn giao trễ ghi nợ shop hoặc phê duyệt không hợp lệ: phát hiện 1 khoản là kích hoạt xử lý. Trần ngày 1.500.000đ và SLA 60 phút giữ nguyên. |
+| Bàn đổi gì về **người** (số người trực, ai đứng tên, ai được gọi)? | Giữ NV-TUNG làm PIC/người giữ công tắc, NV-HANH đứng tên duyệt, NV-OANH đối soát. Vẫn 1 người duyệt, công suất 6 ca/giờ; chưa tự tăng nhân sự để che lỗi cổng. Khi có cảnh báo báo cả Tùng và Hạnh qua Nhóm trực pilot LogiX, gọi Oanh nếu liên quan tiền/shop/hãng. Cần xác nhận tải và ca trực khi mở phạm vi all. |
+| Bàn đổi gì về **phạm vi** hoặc **quy trình** (kiểm mẫu, ghi chú giải thích, trần)? | Config hiện chuyển từ HN/HCM sang `pilot_scope.mode=all`; đây là thay đổi phạm vi cần đánh giá lại, chưa coi là được phép mở pilot thật. Bật `decision_note` từ false sang true, giữ kiểm mẫu 10%; bổ sung ba điều kiện dừng S2. Guard sửa payer/số tiền thay vì chuyển người không cần thiết và bổ sung trần khách/ngày. Không gán số chi phí đo trước đó cho hiệu quả riêng của ghi chú hoặc phạm vi mới. |
+| Nói gì với bên thứ ba bị ảnh hưởng (hãng, shop, người nhận, nhân viên duyệt), ai nói, trong bao lâu? | NV-OANH thông báo cho shop/hãng rằng LogiX đang xác minh khoản ghi nợ/lỗi bị khiếu nại, cung cấp mã đối soát và hẹn cập nhật; chưa cam kết số tiền bồi hoàn khi chưa xác minh. NV-HANH trao đổi với người duyệt về khoản thiếu căn cứ; NV-TUNG điều phối. Nhóm chọn cam kết liên hệ ban đầu trong 60 phút từ khi xác nhận ảnh hưởng, cập nhật trước kỳ chốt 16h nếu còn thời gian, nếu không phải báo ngay nguy cơ trễ chốt và hẹn mốc mới. Dừng thao tác gây hại tối đa 15 phút theo B7.5; đây là thời hạn quy trình đề xuất, chưa phải SLA đã đo. |
+| Dữ liệu cá nhân nào đã rời hệ thống mà không thu hồi được? Báo cho ai? | Kết quả  ghi trong C0 có pii_leaks=0; chưa có bằng chứng PII đã rời hệ thống trong phạm vi đó, không suy ra toàn bộ payload đều an toàn. Nếu kiểm tra outbound phát hiện dữ liệu cá nhân đã gửi, NV-TUNG dừng notify_carrier, lưu bằng chứng hạn chế truy cập, xác định người nhận và phối hợp đầu mối phụ trách dữ liệu yêu cầu hạn chế sử dụng/xóa bản nhận; NV-HANH điều phối liên hệ người bị ảnh hưởng. Không cam kết thu hồi được mọi bản sao. |
+| Sự cố lộ ra trước qua số máy đo, phản hồi của người, hay đọc nội dung? Nguồn nào bàn chưa có? | Theo mặt trước thẻ S2, kế toán Oanh phát hiện từ đối soát và khiếu nại shop; sau đó nhóm dùng trace/report tìm nguyên nhân. Còn thiếu dữ liệu pilot thật, hiệu quả cảnh báo/kiểm mẫu, tải người duyệt, kết quả test ẩn và report gắn với cấu hình cuối. Không coi phát hiện offline là bằng chứng đã có cảnh báo production. |
 
 ### Runbook 5 · Ba kịch bản "nếu … thì …" cho tuần đầu chạy thử thật
 
-1. Nếu số ticket tăng gấp ___ lần trong một giờ thì: …
-2. Nếu nhà cung cấp LLM lỗi quá ___ phút thì: …
-3. Nếu người duyệt báo không tin một quyết định của trợ lý thì: …
+1. Nếu số ticket tăng gấp **3 lần** trong một giờ thì: **NV-HANH** kiểm tải vào hàng duyệt/kiểm lại, đối chiếu công suất **6 ca/giờ** của 1 người. Khi chờ từ **30 phút** hoặc tốc độ ca cần duyệt vượt công suất, báo **NV-TUNG** chuẩn bị người hỗ trợ; khi chờ >**60 phút** hoặc có >=**1 ca ùn**, Tùng điều phối người có thẩm quyền, giảm tiếp nhận tự động/thu hẹp về phần đã kiểm chứng và bảo đảm có người nhận phần chuyển tay. Chỉ cập nhật số người và công suất khi bố trí được người thật; đo lại phí trực, chi phí/ticket và ROI trước khi mở lại tải. Ngưỡng 30 phút là cảnh báo sớm nhóm chọn.
+2. Nếu nhà cung cấp LLM lỗi liên tục quá **5 phút** thì: người trực báo **NV-TUNG** qua Nhóm trực pilot LogiX, dừng luồng tự động phụ thuộc LLM đang lỗi và để **NV-HANH** điều phối xử lý thủ công trong năng lực trực; không cho nhánh fail_open ghi tiền. Nếu có nguy cơ ghi sai thì tắt issue_refund ngay, không đợi hết 5 phút. Giữ log lỗi, đối chiếu sổ cái trước khi retry để tránh hoàn trùng. Tùng chỉ bật lại khi nhà cung cấp ổn định và kiểm tra luồng an toàn đạt; thời hạn 5 phút là ngưỡng phản ứng do nhóm đề xuất, chưa được mô phỏng lab xác nhận.
+3. Nếu người duyệt báo không tin một quyết định của trợ lý thì: **NV-HANH** giữ khoản chưa ghi, kiểm đơn/tracking, chính sách, payer, lịch sử hoàn và approval từ DB; lời khách hoặc ghi chú giải thích không thay thế phê duyệt. Nếu đã ghi, **NV-OANH** đối soát, không hoàn lại lần nữa trước khi xác minh; có bằng chứng ghi sai thì **NV-TUNG** tắt tool gây hại theo thời hạn tối đa 15 phút. Lưu ticket, trace và nguyên nhân bất đồng để bổ sung kiểm tra/monitor; chỉ tiếp tục khi Hạnh xác nhận nghiệp vụ và Tùng cho phép theo điều kiện bật lại ở B7.5.
 
 ---
 

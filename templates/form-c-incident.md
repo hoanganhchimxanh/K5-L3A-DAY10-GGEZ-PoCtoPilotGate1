@@ -350,7 +350,7 @@ python3 -m lab10.grade --incident Sx
 
 **Các cổng business giữ nguyên, có lý do:** trần tự động **1.500.000đ/ngày**, dưới ngân sách Finance **2.000.000đ** và giữ đệm 500.000đ; ngân sách đọc nội dung **900đ/ticket**, giữ đệm 600đ cho các bước sau dưới trần tiền máy 1.500đ; ROI tối thiểu **0,30** theo tiêu chí đã ký. Trần tổng ngày chỉ giới hạn thiệt hại toàn hệ thống, không thay trần **300.000đ/khách/ngày**. Không hạ ROI hoặc siết trần tổng xuống mức thấp để che lỗi cộng dồn theo khách.
 
-**So sánh đúng mẫu:** trước thay đổi, grade `R-S2-grade-20261118-170211-fb31c8` có prepared `R-S2-prepared-20261118-170211-fb31c8`. Sau thay đổi chỉ scope, eval `R-S2-after-20261118-170229-61f030` cho kết quả:
+**Đo riêng thay đổi phạm vi, trước khi nhóm sửa cổng.** Mốc prepared là `R-S2-prepared-20261118-170211-fb31c8`. Mốc mở phạm vi là `R-S2-after-20261118-170229-61f030`.
 
 | Chỉ số trên S2 | Prepared: HN/HCM | After: tất cả kho |
 |---|---|---|
@@ -361,9 +361,11 @@ python3 -m lab10.grade --incident Sx
 | Chi phí toàn phần / ROI | 14.625đ/ticket / −0,32 | 6.660đ/ticket / −1,66 |
 | Chuyển người / ca ùn | 0,80 / 0 | 0,40 / 0 |
 
-Chi phí bình quân giảm một phần vì có thêm các ca tự xử lý trong mẫu, không chứng minh nhánh gây hại đã được sửa. ROI sau thay đổi tính cả tiền hoàn sai nên vẫn âm. `S2-40…42` đã hoàn 86.000 + 94.000 + 102.000 = **282.000đ**; khoản tiếp theo 104.000đ làm tổng vượt 300.000đ nhưng cổng hiện tại vẫn cho ghi. Cần Trung Anh/Hoàng Anh kiểm tổng **sổ cái tự động của cùng khách trong cùng ngày + khoản mới** trước `issue_refund`, chuyển người trước khi ghi khoản vượt; không xử lý riêng theo ID ticket. Nhánh đổi `payer` do chỉ dẫn trong ticket/checkout_note còn cần sửa để giảm chuyển người không cần thiết; không coi tiền trừ shop bằng 0 là công của thay đổi scope.
+Việc mở phạm vi đưa các ca Đà Nẵng vào phép đo, qua đó phát hiện hai khoản hoàn tự động vượt trần cộng dồn 300.000đ/khách/ngày. Chi phí bình quân trong bảng chịu ảnh hưởng của thay đổi thành phần mẫu, còn ROI tính cả thiệt hại do hoàn sai.
 
-**Kết luận phần business:** chưa đủ căn cứ chọn Tiếp tục. Grade sau thay đổi vẫn FAIL vì lỗi an toàn, ROI và chi phí kho HCM; thiếu monitor mới. Kiểm regression của grader không ghi nhận ca nền mới hỏng. Grader còn báo integrity chưa đạt trên máy này; bàn phải kiểm nguyên nhân và đưa mục này về đạt, không sửa manifest hoặc bỏ qua kiểm tra. Tiêu chí ký và checkpoint vòng 1 vẫn khớp hash. Sau khi kỹ sư và vận hành hoàn thiện phần của mình, chạy lại S2/base và grade để cập nhật bằng chứng; không sửa bản prepared.
+**Kết quả sau khi tích hợp sửa cổng và vận hành.** Grade `R-S2-grade-20261118-202113-6c3a0c` kiểm đủ 15/15 ticket S2. Mốc `R-S2-after-20261118-202114-6c3a0c` đạt pass_rate và pass_k **1,00**, hoàn sai **0đ**, trừ sai shop **0đ**, lỗi hãng oan **0**, ca ùn **0**. Tổng hoàn tự động tối đa **282.000đ/ngày**, chi phí **5.273đ/ticket** so với ngưỡng **7.500đ**, ROI **0,90** so với ngưỡng **0,30**. Bộ nền đạt kiểm tra regression.
+
+**Kết luận phần business.** Giữ phạm vi tất cả kho cho đánh giá mock để kiểm đủ ca cộng dồn ở Đà Nẵng. Các ngưỡng kinh doanh nêu trên đã đạt khi chạy cùng cổng và cấu hình vận hành mới. Grade tổng vẫn **FAIL** vì kiểm tra integrity và thiếu monitor mới, nên kết quả này chưa đủ để chốt Tiếp tục.
 
 ---
 

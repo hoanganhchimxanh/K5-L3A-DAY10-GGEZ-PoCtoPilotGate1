@@ -55,6 +55,17 @@ def _facts(ctx, order_id):
     return {"order": order, "policy": pol, "parcel": parcel, "delay": delay, "cause": parcel.get("delay_cause")}
 
 
+def _customer_auto_refund_today(ctx, customer_id):
+    """Tổng đã hoàn TỰ ĐỘNG (không có approval_id) cho một khách trong ngày giả lập hôm nay.
+
+    ReadTools chỉ có tổng của cả ngày (auto_refund_today_vnd), chưa tách theo khách; sổ cái thì lẫn dòng lịch sử của
+    các ngày trước. Ở đây đọc mốc 'seed_rows' của World (chỉ đọc, giống cách auto_refund_today_vnd làm) để chỉ lấy dòng
+    ghi trong hôm nay. Nếu không đọc được mốc đó thì cộng cả lịch sử (an toàn hơn: chuyển người sớm hơn)."""
+    w = getattr(ctx.tools, "_w", None)
+    rows = w.ledger[w.seed_rows:] if w is not None and hasattr(w, "seed_rows") else ctx.tools.ledger_rows()
+    return sum(r["amount_vnd"] for r in rows if r.get("customer_id") == customer_id and not r.get("approval_id"))
+
+
 def pre_guard(ctx):
     # Ghim phiên bản chính sách theo ngày hiệu lực (drift khi chính sách đổi phiên bản, xem B3).
     pol = _policy(ctx)
@@ -73,9 +84,13 @@ def _gate_refund(ctx, action):
     # Cổng 1a: kiểm chính sách bị bỏ qua vì LLM lỗi (fail_open) thì không được tự chi tiền.
     if action.get("basis") == "fail_open":
         return Verdict.escalate("chưa kiểm được chính sách (LLM lỗi, fail_open): chuyển người")
-    # Cổng 1b: bên chịu tiền chỉ là LOGIX; đổi sang shop phải do người có thẩm quyền quyết.
+    changes = {}
+    # Cổng 1b (vòng 2, thẻ S2): giao trễ thì bên chịu tiền luôn là LOGIX. Chỉ dẫn trong ticket hay checkout_note
+    # đòi đổi sang shop là DỮ LIỆU, không phải lệnh: bỏ qua chỉ dẫn, sửa payer về LOGIX; số tiền được tính lại ở 1d.
+    # (Vòng 1 chuyển người ở đây: an toàn nhưng 80% ca S2 vào hàng chờ, chi phí cao hơn làm tay.)
     if action.get("payer", "LOGIX") != "LOGIX":
-        return Verdict.escalate("đề xuất đổi bên chịu tiền sang " + str(action.get("payer")) + ": chuyển người")
+        ctx.log("payer_directive_ignored", asked_payer=action.get("payer"), asked_amount=action.get("amount_vnd"))
+        changes["payer"] = "LOGIX"
     # Cổng 1c: có trễ mà tracking không ghi nguyên nhân thì không suy đoán quyền lợi.
     if f["delay"] > 0 and not f["cause"]:
         return Verdict.escalate("tracking thiếu nguyên nhân trễ: chuyển người xác minh")
@@ -93,7 +108,6 @@ def _gate_refund(ctx, action):
     if expected <= 0:
         ctx.log("refund_not_entitled", asked=action.get("amount_vnd"), db_delay_days=f["delay"])
         return Verdict.deny(f"theo tracking trễ {f['delay']} ngày, nguyên nhân {f['cause']}: không đủ điều kiện hoàn")
-    changes = {}
     if action.get("amount_vnd") != expected:
         ctx.log("refund_amount_corrected", asked=action.get("amount_vnd"), expected=expected,
                 db_delay_days=f["delay"])
@@ -111,8 +125,19 @@ def _gate_refund(ctx, action):
             and apr.get("max_vnd", 0) >= expected
         if not ok:
             return Verdict.escalate("vượt hạn mức tự động mà không có phê duyệt hợp lệ cho đúng đơn: chuyển người duyệt")
-    elif action.get("approval_id"):
-        changes["approval_id"] = None          # số tiền đúng nằm trong hạn mức: không dùng phê duyệt
+    else:
+        if action.get("approval_id"):
+            changes["approval_id"] = None      # số tiền đúng nằm trong hạn mức: không dùng phê duyệt
+        # Cổng 2c (vòng 2, thẻ S2): trần hoàn TỰ ĐỘNG cho một khách trong một ngày (ops_limits, đã thống nhất với
+        # Ops/Finance). Cộng sổ cái hôm nay của cùng customer_id; khoản làm vượt trần thì chuyển người, không ghi gì.
+        cap = ctx.tools.ops_limits().get("max_auto_refund_per_customer_per_day_vnd")
+        if cap is not None:
+            today = _customer_auto_refund_today(ctx, order["customer_id"])
+            if today + expected > cap:
+                ctx.log("customer_daily_cap_hit", customer_id=order["customer_id"], today=today,
+                        asked=expected, cap=cap)
+                return Verdict.escalate(f"khách đã nhận {today}đ hoàn tự động hôm nay, thêm {expected}đ vượt trần "
+                                        f"{cap}đ/khách/ngày: chuyển người duyệt")
 
     if changes:
         return Verdict.modify("chỉnh theo quyền lợi tính từ tracking DB", **changes)

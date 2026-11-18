@@ -81,26 +81,26 @@ Ba loại lỗi:
 
 | # | Lỗi: người ta thấy gì (dán dòng trace / sổ cái) | Ai gặp, ai chịu | Hệ trọng (thấp / cao) | Loại lỗi (giới hạn hệ thống / ngữ cảnh / chìm) |
 |---|---|---|---|---|
-| 1 | | | | |
-| 2 | | | | |
+| 1 | `06 tool {"tool": "issue_refund", "amount_vnd": 20000, "payer": "LOGIX"}` & Sổ cái: `[{'ticket_id': 'T-002', 'order_id': 'O-1002', 'customer_id': 'C-02', 'amount_vnd': 20000, 'payer': 'LOGIX'}]`. Thực tế DB chỉ trễ 2 ngày (`db_delay_days: 2`, dưới mốc 3 ngày của REFUND-v3), nhưng model ghi đè `03 model_override: delay_days db=2 -> ticket=5` dẫn đến hoàn 20.000đ. | Khách C-02 gặp (nhận tiền hoàn), LogiX (chị Oanh kế toán) chịu thiệt hại tài chính oan 20.000đ. | Cao | **Lỗi chìm** (khách và hệ thống đều tưởng đúng, tiền quỹ thất thoát mà không có cảnh báo vi phạm chính sách). |
+| 2 | `07 tool {"tool": "file_carrier_fault", "carrier_id": "VNX", "parcel_id": "O-1002-P1", "delay_days": 5}` và `08 tool notify_carrier`. Ghi 1 strike phạt lỗi trễ 5 ngày cho hãng VNX trong khi tracking DB thực tế chỉ trễ 2 ngày. | Hãng vận chuyển VNX và tài xế TX-VNX-03 gặp và chịu (bị ghi nhận strike lỗi oan, đối mặt mức phạt 100.000đ/lỗi và nguy cơ tích lũy đình chỉ hợp tác). | Cao | **Lỗi chìm** (hệ thống tự động ghi lỗi và gửi thông báo cho bên thứ ba ngoài LogiX mà không tự nhận biết dữ liệu sai lệch). |
 
 ### Phần 2 · Tìm nguồn (đánh dấu câu nào đúng với từng lỗi)
 
 | Câu hỏi | Lỗi 1 | Lỗi 2 |
 |---|---|---|
-| **Đầu vào:** hệ thống có tự diễn giải / sửa đầu vào của người dùng theo cách họ không lường? Có đặt sai trọng số cho một lời nói hay tín hiệu của người dùng? | | |
-| **Độ liên quan:** hệ thống có thiếu dữ liệu cần để quyết đúng? Dữ liệu vào có nhiễu, thiếu ổn định? | | |
-| **Thứ bậc hệ thống:** có hai hệ thống cùng ghi / cùng theo dõi một thứ mà không rõ bên nào là chủ (ví dụ CSKH hoàn tay và trợ lý cùng ghi sổ)? | | |
-| **Trạng thái hỏng:** nhiều lỗi cộng lại có làm tính năng không dùng được (ví dụ LLM lỗi liên tiếp)? | | |
+| **Đầu vào:** hệ thống có tự diễn giải / sửa đầu vào của người dùng theo cách họ không lường? Có đặt sai trọng số cho một lời nói hay tín hiệu của người dùng? | **Đúng.** Trợ lý đặt trọng số tuyệt đối cho lời khách tự khai (`claimed_delay_days: 5`, `trust_claim: true`), tự ý ghi đè dữ liệu DB (`03 model_override`) dù tracking DB ghi nhận chỉ trễ 2 ngày. | **Đúng.** Hệ thống tin mù quáng vào lời khai 5 ngày của khách để suy diễn lỗi trễ cho hãng mà không căn cứ vào mốc thời gian thực trong tracking DB. |
+| **Độ liên quan:** hệ thống có thiếu dữ liệu cần để quyết đúng? Dữ liệu vào có nhiễu, thiếu ổn định? | **Sai về thiếu dữ liệu, Đúng về xử lý:** Dữ liệu chân lý sự thật đã có sẵn trong tracking DB (`db_delay_days: 2`), nhưng logic xử lý coi lời khai chủ quan của khách là nguồn dữ liệu hợp lệ để tính tiền. | **Sai về thiếu dữ liệu, Đúng về xử lý:** Đã có dữ liệu kiện `O-1002-P1` trễ 2 ngày, nhưng hệ thống bỏ qua dữ kiện này khi tạo lệnh ghi lỗi hãng. |
+| **Thứ bậc hệ thống:** có hai hệ thống cùng ghi / cùng theo dõi một thứ mà không rõ bên nào là chủ (ví dụ CSKH hoàn tay và trợ lý cùng ghi sổ)? | **Đúng.** Xung đột thứ bậc nguồn dữ liệu: Giữa hệ thống Tracking DB (nguồn sự thật) và LLM Extract (tự bóc tách từ chat), trợ lý cho phép LLM ghi đè DB mà không qua kiểm duyệt. | **Đúng.** Lệnh ghi `file_carrier_fault` tự động kích hoạt chế độ phạt bên thứ ba mà không có cơ chế đối chiếu xác thực chéo với sổ đối soát của kế toán/vận hành. |
+| **Trạng thái hỏng:** nhiều lỗi cộng lại có làm tính năng không dùng được (ví dụ LLM lỗi liên tiếp)? | **Không.** Trợ lý không bị dừng hay crash; mọi công cụ (`issue_refund`, `file_carrier_fault`) đều phản hồi 200 khiến lỗi nghiệp vụ bị lọt lưới âm thầm. | **Không.** Luồng gửi thông báo và ghi lỗi hoàn tất bình thường mà không phát sinh ngoại lệ hệ thống. |
 
 ### Phần 3 · Hướng xử lý (mỗi lỗi một ô)
 
 | | Lỗi 1 | Lỗi 2 |
 |---|---|---|
-| Vì sao người gặp coi đây là lỗi | | |
-| Kiểu giải pháp: phản hồi cho người dùng / trao quyền kiểm soát cho người / khác | | |
-| Đường đi của người sau khi có giải pháp (ví dụ: ticket chuyển sang người duyệt → duyệt → khách được trả lời) | | |
-| Hệ thống học được gì (tín hiệu ghi lại để theo dõi: tên metric trong `monitors.py`) | | |
+| Vì sao người gặp coi đây là lỗi | Kế toán (chị Oanh) coi là lỗi vì đơn giao trễ 2 ngày theo tracking DB, theo chính sách REFUND-v3 (tối thiểu 3 ngày) thì đơn không đủ điều kiện hoàn tiền (`NHÃN: refund_vnd: 0, status: denied`); quỹ LogiX bị thất thoát 20.000đ. | Hãng VNX coi là lỗi vì dữ liệu giao hàng thực tế chứng minh kiện hàng chỉ trễ 2 ngày, không vi phạm mức trễ quy định để phạt lỗi; việc bị ghi trễ 5 ngày là oan sai do lời khai một phía của khách. |
+| Kiểu giải pháp: phản hồi cho người dùng / trao quyền kiểm soát cho người / khác | **Trao quyền kiểm soát cho người kết hợp cổng phòng ngừa:** Chặn không cho model tự ý ghi đè số ngày trễ của DB bằng số ngày khách khai; nếu có sai lệch (`claimed_delay_days != db_delay_days`), lập tức chuyển (`escalate`) cho chị Hạnh duyệt. | **Cổng kỹ thuật tự chặn (Hard Gate):** Cấm tuyệt đối việc dùng số ngày do khách tự khai để ghi lỗi hãng. Bắt buộc dùng `db_delay_days` từ tracking DB và kiểm tra ngưỡng chính sách trước khi gọi `file_carrier_fault`. |
+| Đường đi của người sau khi có giải pháp (ví dụ: ticket chuyển sang người duyệt → duyệt → khách được trả lời) | Ticket phát hiện độ trễ khách khai lệch tracking DB → Cổng chặn chuyển ca sang hàng đợi duyệt của chị Hạnh → Chị Hạnh đối chiếu dữ liệu tracking thực (trễ 2 ngày) → Quyết định từ chối hoàn tiền theo REFUND-v3 → Hệ thống gửi thông báo giải thích chi tiết mốc thời gian giao nhận cho khách C-02. | Cổng `write_gate` kiểm tra thấy độ trễ thực = 2 ngày (< 3 ngày) → Trả về `Verdict.deny("Chưa đủ số ngày trễ quy định để phạt hãng")` → Hủy lệnh `file_carrier_fault` và `notify_carrier` → Không có dòng lỗi oan nào ghi vào sổ đối soát của VNX. |
+| Hệ thống học được gì (tín hiệu ghi lại để theo dõi: tên metric trong `monitors.py`) | Theo dõi metric `model_override_rate` (tỉ lệ lần chạy có hiện tượng model ghi đè ngày trễ của DB) và `claimed_vs_db_discrepancy_rate` để phát hiện sớm các ca gian lận/nhầm lẫn. | Theo dõi metric `wrongful_carrier_fault_count` hoặc `carrier_fault_override_rate` (tỉ lệ ghi lỗi hãng dựa trên dữ liệu không trùng khớp với tracking DB). |
 
 **Ví dụ (bộ nền, đừng chép):** `T-002@55` · sổ cái có dòng hoàn 20.000đ, hãng VNX nhận một lỗi, trong khi tracking ghi trễ 2 ngày ·
 khách không thấy gì sai, hãng chịu · cao · **lỗi chìm**. Nguồn: đầu vào (đặt sai trọng số cho con số khách tự khai). Xử lý:

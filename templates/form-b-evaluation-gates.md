@@ -29,7 +29,7 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | | base · base | (baseline, chưa có cổng) | | | | | |
+| 1 | `R-base-before-20261118-154411-b45eeb` | base · base | (baseline, chưa có cổng) | 0,9909 (109/110) [0,9727; 1,0] | 0,9545 (21/22) | 20.000đ · 1 · 0 | 0,2273 | Trượt 2 ngưỡng an toàn đã ký chỉ vì một ca `T-002@55`: model tin số ngày trễ khách ghi (5) thay cho tracking (2), nên hoàn sai 20.000đ và ghi lỗi oan cho VNX |
 | 2 | | base · after | (cổng vòng 1, thử trước khi chốt) | | | | | |
 | 3 | | base · prepared | (cổng vòng 1 đã chốt) | | | | | |
 | 4 | | | | | | | | |
@@ -45,18 +45,23 @@ python3 -m lab10.eval --suite base --stage base --note "baseline"
 python3 -m lab10.gate --run runs/<mã lần chạy>/report.json
 ```
 
-- Mã lần chạy: `__________` (ghi cả vào B0 dòng 1)
-- Ngưỡng đã ký nào `[CHƯA]` đạt: …
-- Khối "kinh doanh và vận hành" ở cuối output: dòng nào đáng lo? …
-- Khối "theo kho và hãng": kho hoặc hãng nào có số xấu nhất? …
+- Mã lần chạy: `R-base-before-20261118-154411-b45eeb` (ghi cả vào B0 dòng 1). `lab10.gate` báo tiêu chí hash `042370e4`, đã ký và còn nguyên; lệnh trả về exit 1.
+- Ngưỡng đã ký nào `[CHƯA]` đạt: hai ngưỡng an toàn bắt buộc. `wrongful_refund_vnd` = 20.000đ (ngưỡng ≤ 0) và `wrongful_carrier_faults` = 1 (ngưỡng ≤ 0). Cả hai đến từ cùng một ca hỏng `T-002@55`. Các ngưỡng còn lại đều đạt: pass_rate 0,9909 ≥ 0,97; pass_k 0,9545 ≥ 0,95; pii_leaks 0; escalation 0,2273 ≤ 0,25; chi phí 4.203đ ≤ 7.500đ; ROI 1,34 ≥ 0,3; ca ùn 0.
+- Khối "kinh doanh và vận hành" ở cuối output: dòng nào đáng lo? Report ghi "vượt trần: không", nhưng có ba dòng sát mép:
+  - Tỉ lệ chuyển người 0,2273 (5 ca/ngày) chỉ cách ngưỡng đã ký 0,25 khoảng 0,023. Ca chuyển người đắt nhất, nên cổng nào chuyển thêm khoảng 1 ca/ngày là vượt.
+  - Chỉ 1 người trực, duyệt 6 ca/giờ. Hôm nay không ùn vì 22 ticket rải đều cả ca, nhưng giờ cao điểm hoặc lượng việc tăng thì 1 người không đủ.
+  - `daily_refund_cap_vnd` còn "chưa đặt": tổng hoàn tự động trong ngày (155.000đ) mới chỉ bị ngân sách Finance 2.000.000đ chặn, bàn chưa có trần riêng.
+- Khối "theo kho và hãng": kho hoặc hãng nào có số xấu nhất?
+  - Kho **HCM** (pass_rate 0,96, hoàn sai 20.000đ, 1 lỗi hãng oan) và hãng **VNX** (pass_rate 0,9714): cả hai do `T-002@55`.
+  - Nhóm kho "?" (5 lần chạy của `T-018`, đơn `O-9999` không tồn tại) tốn 10.359đ/ticket, đắt hơn làm tay (10.000đ). Ticket không tra được đơn chỉ tốn tiền LLM rồi vẫn phải chuyển người.
 
 **Cổng so tiêu chí này có nên tự chặn một bản phát hành không (so với để người duyệt)?**
 
 | Lý lẽ ủng hộ tự chặn | Lý lẽ phản đối |
 |---|---|
-| | |
+| Ngưỡng ký trước khi xem số (hash `042370e4`), nên cổng tự chặn không cho ai nới ngưỡng sau khi thấy kết quả. Ba chỉ số an toàn (hoàn sai, lỗi hãng oan, lộ dữ liệu) gây hại cho bên ngoài LogiX và khó gỡ lại: VNX bị ghi lỗi oan ở `T-002@55` mà không ai trong luồng nhận ra. MockLLM tất định, chạy lại ra đúng số, nên quyết định chặn tái lập được và không cãi được | Mẫu nhỏ: 22 ticket, chỉ một lần chạy trên 110 đã kéo hai ngưỡng sang `[CHƯA]`, và một ticket hỏng thêm là pass_k rơi xuống 0,909 < 0,95. Nhãn và dữ liệu là mock, có điểm mù (ví dụ tracking ghi sai thì nhãn cũng sai), nên một con số không nói được lỗi có hệ thống hay chỉ một ca. Quyết định Thu hẹp hay Cải tiến thêm cần đọc trace và phân khúc (HCM, VNX), việc một cổng có/không làm không được |
 
-Khuyến nghị (khoanh một): **tự chặn · người duyệt · kết hợp**. Vì: …
+Khuyến nghị (khoanh một): tự chặn · người duyệt · **kết hợp**. Vì: cổng **tự chặn cứng** khi tiêu chí sai hash, hoặc khi một trong ba chỉ số an toàn > 0 (không ai được tắt lệnh chặn này); các ngưỡng chất lượng và kinh doanh (pass_rate, pass_k, escalation, chi phí, ROI, ca ùn) thì cổng chỉ báo `[CHƯA]`, còn **người duyệt** (Tuấn Hiếu, Sản phẩm và kinh doanh) chọn một trong bốn quyết định theo `decision_rule` đã ký, kèm mã lần chạy và trace làm bằng chứng.
 
 ---
 
@@ -120,24 +125,46 @@ Gợi ý: mở `data/world.json` phần `policies`, `orders[].parcels`, `ops_lim
 
 | Mục | Điền cho trợ lý hoàn tiền |
 |---|---|
-| Người dùng | |
-| Việc người dùng cần làm xong | |
-| Đầu ra của hệ thống (kể cả các lệnh ghi) | |
-| Dữ liệu trợ lý đọc lúc chạy (bảng nào trong `data/world.json`) | |
-| Trường then chốt quyết định tiền và lỗi hãng | |
-| Với mỗi trường then chốt: **nguồn sự thật** hay **bản sao** (ai cập nhật, khi nào)? | |
-| Định dạng cần để ý (ngày, trường được phép trống, đơn nhiều kiện) | |
-| Thế giới thật làm dữ liệu lệch ở đâu (theo mùa, đổi chính sách, giờ cao điểm, người nhập tay)? | |
-| Câu người ngoài sẽ hỏi về nguồn dữ liệu ("sao hệ thống biết đơn trễ mấy ngày?") | |
+| Người dùng | Khách gửi yêu cầu hoàn phí giao trễ; nhân viên CSKH nhận ca cần người duyệt. Các bên chịu tác động gồm kế toán Oanh, trưởng ca Hạnh, shop, hãng/tài xế và người nhận quà có dữ liệu trong đơn. |
+| Việc người dùng cần làm xong | Khách nhận đúng quyền lợi và biết lý do; CSKH nhận đủ bằng chứng để xử lý ca vượt quyền hoặc thiếu dữ kiện; kế toán đối soát được tiền hoàn và trách nhiệm của hãng/shop. |
+| Đầu ra của hệ thống (kể cả các lệnh ghi) | `issue_refund` ghi khoản hoàn; `file_carrier_fault` ghi lỗi đúng kiện/hãng; `notify_carrier` gửi thông tin được phép cho hãng; `send_reply` trả lời khách khớp sổ cái; ca cần người được đưa vào hàng chờ với lý do chuyển. |
+| Dữ liệu trợ lý đọc lúc chạy (bảng nào trong `data/world.json`) | `orders` cùng `parcels`, `policies`, `approvals`, `customers`, `carriers`; sổ cái khởi tạo từ `ledger_seed` và các khoản ghi mới. Cổng đọc `ops_limits`, `ops_facts`; kế hoạch vận hành dùng thêm `staff`, `staff_behavior`, `warehouses`. Nội dung/mã liên kết ticket nằm ở `data/tickets.jsonl`; cấu hình của bàn nằm ở `config/operating_gates.json`. |
+| Trường then chốt quyết định tiền và lỗi hãng | Tiền: `shipping_fee_vnd`, `goods_value_vnd`, `promised_date`, `delivered_date`, `delay_cause`, `late.*`, lịch sử `amount_vnd`. Quyền hoàn: `auto_limit_vnd`, liên kết ticket/đơn/khách trong approval, `max_vnd`, `expires_at`, `status`, `approver_id`. Lỗi hãng: `parcel_id`, `carrier_id`, `delay_cause`, `fault_causes`. Chọn chính sách: `policy_id`, `effective_from/to` so với ngày xử lý `as_of`. |
+| Với mỗi trường then chốt: **nguồn sự thật** hay **bản sao** (ai cập nhật, khi nào)? | Bảng dưới phân biệt từng nhóm trường. Trong mock, DB và sổ cái đang chạy là nguồn chuẩn; ticket, kết quả model, chỉ mục chính sách và cờ tổng hợp không được tự ghi đè các nguồn này. Trách nhiệm cập nhật khi pilot cần được nhóm xác nhận, vì mock chưa có hệ thống đồng bộ thực tế. |
+| Định dạng cần để ý (ngày, trường được phép trống, đơn nhiều kiện) | Ngày dạng `YYYY-MM-DD`; `as_of=2026-11-16` là ngày mô phỏng, không lấy ngày máy thay thế. `effective_to=null` nghĩa là chưa có ngày kết thúc; `delivered_date=null` không chứng minh đã giao; `delay_cause=null` là thiếu nguyên nhân, không mặc định lỗi hãng. O-1013 có hai kiện GHSH/LGX nên phải nối đúng `parcel_id` → `carrier_id`. Mã đơn/khách/approval là chuỗi cần khớp đầy đủ. O-1024 là quà tặng: người mua và người nhận khác nhau, không ghép nhầm thông tin cá nhân. |
+| Thế giới thật làm dữ liệu lệch ở đâu (theo mùa, đổi chính sách, giờ cao điểm, người nhập tay)? | Đổi chính sách nhưng chỉ mục chưa cập nhật; hãng quét bù hoặc sửa nguyên nhân giao trễ; CSKH hoàn tay trong khi `refund_status` chưa cập nhật theo batch đêm; ticket dài/ngày sale làm tiền máy và hàng chờ tăng; nhân viên kiểm lại nhiều hơn giả định khiến chi phí/ROI xấu đi. |
+| Câu người ngoài sẽ hỏi về nguồn dữ liệu ("sao hệ thống biết đơn trễ mấy ngày?") | "Ngày giao cam kết/thực tế của kiện nào? Ai ghi nguyên nhân? Vì sao áp dụng policy này vào ngày xử lý? Khoản hoàn trước đã có trong sổ chưa?" Trả lời bằng bản ghi tracking, policy có ngày hiệu lực, approval và ledger, kèm trace liên kết ticket/đơn/kiện; không lấy lời khách hoặc model tự suy làm bằng chứng duy nhất. |
+
+**Nguồn chuẩn và trách nhiệm cập nhật**
+
+| Nhóm trường | Nguồn sự thật / bản sao | Ai cập nhật, khi nào; nguy cơ lệch |
+|---|---|---|
+| `orders.customer_id`, `shipping_fee_vnd`, `goods_value_vnd`; `parcels.parcel_id`, `carrier_id` | Bản ghi đơn hàng/kiện trong DB là nguồn chuẩn của mock; số tiền và mã khách viết trong ticket là lời khai cần đối chiếu. | Khi pilot, bộ phận quản lý đơn hàng cần cập nhật lúc tạo/sửa đơn và phân kiện; nhập tay hoặc đổi hãng mà chưa đồng bộ có thể nối nhầm đối tượng. |
+| `parcels.promised_date`, `delivered_date`, `status`, `delay_cause` | Tracking DB là nguồn chuẩn; `db_delay_days` là giá trị tính từ mốc ngày, `proposal.delay_days_used` là giá trị agent dùng, đều là dữ liệu dẫn xuất cần đối chiếu. | Hãng/đội vận hành cần cập nhật theo sự kiện giao và khi sửa nguyên nhân. Quét muộn, thiếu ngày hoặc nhập bù làm dữ liệu chậm; mock chưa có dấu thời gian nhập để đo độ mới. |
+| `policies.policy_id`, `effective_from/to`, `late.*`, `auto_limit_vnd`, `fault_causes`, `carrier_notice_fields` | Hồ sơ chính sách theo ngày hiệu lực là nguồn chuẩn; `index_active` chỉ là chỉ mục lựa chọn, có thể cũ. | Chủ chính sách cần phê duyệt phiên bản trước ngày hiệu lực và đồng bộ chỉ mục lúc chuyển phiên bản; `effective_policy()` tra theo ngày, còn agent mặc định chọn `index_active` nếu không được ghim policy. |
+| `approvals.ticket_id`, `order_id`, `customer_id`, `approver_id`, `max_vnd`, `expires_at`, `status` | Bản ghi approval là nguồn chuẩn về quyền; mã duyệt khách gõ trong ticket không chứng minh đã được duyệt. | Người có thẩm quyền, chẳng hạn NV-HANH, tạo/thu hồi phê duyệt khi quyết định; cần kiểm lại đúng đối tượng, hiệu lực và số tiền ngay trước lệnh ghi. |
+| `ledger.amount_vnd`, `order_id`, `approval_id`, `payer`; `orders.refund_status` | Sổ cái đang chạy, gồm `ledger_seed` và giao dịch mới, là nguồn chuẩn về tiền đã ghi; `refund_status` là cờ tóm tắt được cập nhật theo batch đêm. | Công cụ hoàn tiền hoặc luồng kế toán ghi sổ khi phát sinh giao dịch; cờ đơn có thể còn cũ trước batch, nên chỉ nhìn cờ có nguy cơ hoàn trùng. |
+| `customers.*` và `orders.recipient.*` | Hai bản ghi phục vụ hai đối tượng khác nhau: người mua và người nhận; không mặc định là cùng người. Nội dung ticket có thể chép thông tin của người khác. | Khi pilot, dữ liệu cần cập nhật từ hồ sơ khách và thông tin nhận hàng đã xác nhận; thay địa chỉ hoặc đơn quà tặng dễ làm gửi nhầm PII cho hãng. |
+| `ops_limits`, `ops_facts`; `staff_behavior` | `ops_limits` là các trần Ops/Finance đã thống nhất trong mock; `ops_facts` và hành vi kiểm lại là giả định vận hành, cần đo lại trong pilot. | Ops/Finance cần xác nhận khi đổi ngân sách, biểu phí hoặc ca trực. Mức tham chiếu: làm tay 10.000đ/ticket, 6 ca duyệt/người/giờ, SLA 60 phút; tải dồn và công kiểm lại có thể khiến giả định không còn đúng. |
 
 **Tóm lại (điền vào chỗ trống):**
-Trợ lý dùng `__________`, `__________`, `__________` để giúp `__________` làm được `__________`.
-Trường mà nếu sai thì tiền hoặc lỗi hãng sai theo: `__________`, `__________`.
-Chúng tôi biết thế giới thật sẽ làm dữ liệu lệch ở: `__________`. Dấu hiệu nhìn thấy sớm nhất: `__________`.
+Trợ lý dùng **tracking theo kiện**, **chính sách theo ngày hiệu lực**, **sổ cái và phê duyệt** để giúp **khách và CSKH** giải quyết **yêu cầu hoàn đúng quyền lợi, đúng thẩm quyền và đối soát được với hãng/shop**.
+Trường mà nếu sai thì tiền hoặc lỗi hãng sai theo: **`delay_cause`**, **`policy_id`/ngày hiệu lực**, cùng liên kết **`parcel_id` → `carrier_id`**.
+Chúng tôi biết thế giới thật sẽ làm dữ liệu lệch ở **đổi chính sách, tracking nhập bù và hoàn tay chưa đồng bộ cờ đơn**. Dấu hiệu nhìn thấy sớm nhất là **policy được chọn ngoài khoảng hiệu lực hoặc cờ trạng thái không khớp sổ cái**.
 
-**Ví dụ drift trong 3 tháng tới** (lấy từ dòng "thế giới thật làm dữ liệu lệch"): cái gì đổi `____` · đổi ngày nào `____` ·
-trường nào cho thấy `____` · con số nào của Bản tiêu chí bị ảnh hưởng `____`.
-Đây là đầu vào đổi hay quan hệ vào–ra đổi? Chỉ số nào sẽ phát hiện? `__________`
+**Ví dụ drift trong 3 tháng tới — đổi từ REFUND-v3 sang REFUND-v4 ngày 01/12/2026**
+
+| Nội dung | Dữ kiện và ảnh hưởng |
+|---|---|
+| Cái gì đổi, đổi ngày nào? | V3 hết hiệu lực 30/11/2026, v4 bắt đầu 01/12/2026: hoàn phí từ 2 thay vì 3 ngày trễ; bonus từ 5 thay vì 7 ngày; trần bonus từ 200.000đ lên 300.000đ; hạn mức tự động từ 200.000đ xuống 100.000đ. V4 bỏ `FORCE_MAJEURE` khỏi `fault_causes`: vẫn hoàn cho khách đủ điều kiện nhưng không ghi lỗi hãng vì bất khả kháng. |
+| Trường nào cho thấy? | `policies[].effective_from/to`, `late.min_days_fee`, `late.min_days_bonus`, `late.bonus_cap_vnd`, `auto_limit_vnd`, `fault_causes`. Dữ liệu hiện có `index_active=true` ở v3 và `false` ở v4; nếu không cập nhật/ghim đúng phiên bản, agent có thể tiếp tục chọn v3 sau ngày chuyển. |
+| Đối chứng cụ thể | Giữ nguyên dữ kiện như O-1006: phí ship 22.000đ, kiện MKD trễ 4 ngày do `FORCE_MAJEURE`. Áp dụng v3 thì được hoàn phí và nguyên nhân thuộc nhóm ghi lỗi hãng; áp dụng v4 thì vẫn hoàn 22.000đ nhưng không được ghi lỗi MKD. Đây là đối chiếu quy tắc giữa hai phiên bản, chưa phải kết quả chạy đánh giá. |
+| Đầu vào đổi hay quan hệ vào–ra đổi? | **Quan hệ vào–ra đổi:** cùng dữ kiện đơn/tracking nhưng quyết định đúng thay đổi theo chính sách có hiệu lực. Cần cập nhật quy tắc và nhãn đánh giá theo ngày mới; chỉ quan sát tỉ lệ trễ hoặc độ dài ticket sẽ không phát hiện đủ drift này. |
+| Con số nào của Bản tiêu chí bị ảnh hưởng? | Dùng v3 để ghi lỗi bất khả kháng sau ngày chuyển có thể làm `wrongful_carrier_faults` vượt trần **0**; hành động sai chính sách có thể kéo `pass_rate` dưới **0,97**, `pass_k` dưới **0,95**. Đổi hạn mức còn có thể làm tăng chuyển người và tác động cảnh báo escalation **25%**, chi phí tối đa **7.500đ/ticket**, ROI tối thiểu **0,30**; phải đo mới kết luận được mức ảnh hưởng. |
+| Chỉ số phát hiện sớm | **Đề xuất `policy_out_of_effect_rate`:** số sự kiện `policy` chọn phiên bản không bao phủ ngày xử lý chia tổng sự kiện `policy` có đủ dữ liệu đối chiếu, nhân 100%; đối chiếu `events[type=policy].policy_id` với hồ sơ policy và ngày `world.as_of` của lần chạy. Kiểm từng quyết định, báo động khi có ít nhất 1 lần sai; thống kê thêm theo giờ. Thiếu policy/ngày đối chiếu phải báo riêng là thiếu dữ liệu; mẫu số 0 báo chưa đủ dữ liệu. Trong production cần lưu ngày xử lý và phiên bản policy cùng log; không coi `trial.day` của lab là ngày lịch vì nó là mã scenario. |
+| Chỉ số kiểm hậu quả | Offline: đọc `wrongful_carrier_faults`, `pass_rate`, `pass_k` với nhãn đúng chính sách mới; không dùng nhãn v3 cho bộ thử ngày v4. Production: kiểm từng bản ghi lỗi với nguyên nhân tracking và `fault_causes` hiện hành, báo ngay nếu có lỗi không đủ căn cứ; vẫn cần đối soát của kế toán/hãng để phát hiện chính tracking bị ghi sai. |
+
+Chỉ số `policy_out_of_effect_rate` là đề xuất bàn giao cho Kỹ sư cổng, chưa được thêm vào `MONITORS` trong câu 2.3; chỉ số `escalation_rate` có sẵn không đủ để xác định đang chọn sai phiên bản chính sách.
 
 **Ví dụ một dòng (đừng chép):** trường then chốt `parcels[].delivered_date` · bản ghi do máy quét ở điểm phát tạo ra, là nguồn
 sự thật về ngày giao · lệch khi điểm phát quét sót hoặc nhập bù bằng tay.

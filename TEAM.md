@@ -5,7 +5,7 @@
 - Tên nhóm: GGEZ
 - Lớp: L3A
 - Repo của bàn: K5-L3A-DAY10-GGEZ-PoCtoPilotGate1
-- Thẻ sự cố đã bốc (S1–S8):
+- Thẻ sự cố đã bốc (S1–S8): S2
 
 ## Thành viên
 
@@ -45,6 +45,35 @@ Tôi học được rằng trace cần đối chiếu dữ kiện từ hệ th�
 ### Sử dụng AI
 
 Tôi dùng trợ lý AI để tra cứu yêu cầu trong các file hướng dẫn và hỗ trợ soạn mục cá nhân này. Các phân tích, quyết định, ngưỡng và thay đổi code/config của nhóm cần được các thành viên tự giải thích và chịu trách nhiệm khi demo.
+
+## VoHuyHoang-2A202603397
+
+### Phần việc phụ trách
+
+Vai **Vận hành và pháp lý**. Phụ trách câu 1.2; HAZOP và checklist câu 2.4; phần operations/legal và runbook câu 2.10; giả định môi trường câu 3.3; phần ops/legal của câu 3.5; fault tree sau sửa, risk register, checklist và runbook câu 3.7; điền thông tin và gom bài trong `submission/`.
+
+### Đóng góp cụ thể
+
+- **Phiếu A:** Viết mục tiêu nhìn từ chị Oanh và chị Hạnh tại A1, tập trung vào đối soát có truy vết và duyệt ca đúng thẩm quyền, phù hợp năng lực ca trực.
+- **Phiếu B:** Hoàn thiện B4 với tool `issue_refund`, phân tích năm kiểu lệch và hai rủi ro ngoài kỹ thuật về công suất người duyệt, ngân sách; điền checklist chín nhóm việc tại B5, có PIC và phân biệt phần đã có bằng chứng với phần còn thiếu. Hoàn thiện B7.5, Runbook 1–3 về trách nhiệm, tín hiệu cảnh báo, cách dừng, xử lý ticket tồn và điều kiện bật lại.
+- **Cấu hình vận hành/pháp lý:** Điền PIC, người duyệt, công suất 1 người/6 ca mỗi giờ, SLA 60 phút, kênh liên lạc, điều kiện dừng và kiểm mẫu 10%; chặn hai trường `customer_note`, `recipient_contact` gửi sang hãng, yêu cầu có nguyên nhân tracking khi ghi lỗi hãng. Sau S2, bổ sung điều kiện xử lý ghi nợ shop, approval không hợp lệ và vượt trần khách/ngày; bật ghi chú quyết định để hỗ trợ kiểm lại.
+- **Phiếu C:** Viết giả định về nội dung do khách kiểm soát tại C5; bổ sung phần ops/legal tại C7 theo kết quả kỹ sư cung cấp, phân biệt quy trình giảm thiệt hại với guard chặn trước ghi. Hoàn thiện C9–C11: fault tree sau sửa, rủi ro kinh tế còn mở, checklist sau sự cố và Runbook 4–5. Không coi kết quả trên phạm vi HN/HCM là bằng chứng cho mọi kho.
+- **Bài nộp:** Điền tên nhóm, bốn thành viên, thẻ S2 và ba dòng bắt buộc; đồng bộ quyết định v1/v2 là Cải tiến thêm sau xác nhận trong phiên làm việc. Dùng trợ lý AI chạy gom và kiểm bài đến khi lệnh `lab10.check_submission --collect` báo ĐỦ THÀNH PHẦN; phân biệt kết quả này với việc đạt các kiểm tra chất lượng của `grade`.
+
+### Bằng chứng
+
+- Các mục A1 câu 1.2 trong `templates/form-a-criteria.md`; B4, B5, B7.5 trong `templates/form-b-evaluation-gates.md`; C5 câu 3.3, phần ops/legal C7, C9–C11 trong `templates/form-c-incident.md`.
+- Hai nhóm `operations`, `legal` trong `config/operating_gates.json`; thông tin nhóm và ba dòng tại `submission/submission.json`, danh sách thành phần tại `submission/manifest.json`.
+- Các mốc commit liên quan của nhóm: `6b17e06` (hoàn thiện 3.5), `72de110` (hoàn thiện 3.7). Đây là mốc lưu nội dung phối hợp, không nhận toàn bộ thay đổi của các thành viên khác là đóng góp riêng.
+- Bộ kết quả Trung Anh cung cấp dùng đối chiếu C7: `R-S2-after-20261118-170943-7c5392`, `R-S2-after-20261118-171021-0099ac`; lần gom có báo cáo `R-S2-grade-20261118-213049-161959`. Các lần chạy là bằng chứng theo cấu hình tại thời điểm chạy, không thay thế report cuối nếu nhóm tiếp tục đổi code/config.
+
+### Exit ticket
+
+Tôi học được rằng cổng an toàn phải đi cùng người chịu trách nhiệm, năng lực duyệt và quy trình đối soát: chuyển hết sang người có thể giữ an toàn nhưng làm chi phí vượt làm tay. Tôi còn chưa chắc kiểm mẫu 10%, công suất 6 ca/giờ và thời hạn phản ứng đề xuất có đủ khi tải tăng hoặc dữ liệu giữa nhiều hệ thống cập nhật trễ; cần kiểm chứng trong pilot thật.
+
+### Sử dụng AI
+
+Tôi dùng trợ lý AI để đọc yêu cầu, hỗ trợ soạn và rà HAZOP, checklist, giả định môi trường, runbook, phần ops/legal và mục cá nhân này; hỗ trợ điền/gom bài và chạy lệnh kiểm tra. Tôi đã trao đổi lại cách hiểu các trường cấu hình và giới hạn của bằng chứng; các ngưỡng, quy trình và quyết định của nhóm cần được tôi cùng các thành viên giải thích và chịu trách nhiệm khi demo.
 
 ## NguyenTuanHieu-2A202603374
 

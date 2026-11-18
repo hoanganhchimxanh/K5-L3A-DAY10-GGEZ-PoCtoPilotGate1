@@ -73,9 +73,9 @@ nhau chia cho số lần chạy có sự kiện `proposal`; lần chạy không 
 
 ### Câu 1.5 · Chọn MỘT kết luận và giải thích một câu
 
-Số minh hoạ trong đề (không phải số của bàn). Khoanh: **(a) · (b) · (c) · (d)**
+Chọn **(b)**
 
-Giải thích một câu: …
+Giải thích một câu: Chênh lệch một lần chạy giữa X và Y chưa đủ để kết luận Y tốt hơn X có ý nghĩa thống kê, vì kết quả 1,0 của Y vẫn nằm trong khoảng tin cậy 95% [0,94; 1,0] của X.
 
 ---
 

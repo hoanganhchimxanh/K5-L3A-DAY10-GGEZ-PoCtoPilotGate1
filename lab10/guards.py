@@ -32,11 +32,132 @@ Mặc định dưới đây cho qua tất cả (= mốc base).
 from . import helpers as H  # noqa: F401
 from .tools import Verdict
 
+# Vòng 1 · nhóm GGEZ. Mọi kiểm tra dựa trên NGUỒN SỰ THẬT (đơn, tracking, chính sách theo ngày hiệu lực,
+# phê duyệt, sổ cái), không đọc chữ khách viết và không theo mã ticket cụ thể.
+#   Cổng 1 (B6 dòng 1; B4 dòng WRONG / INCOMPLETE / INCAPABLE): số tiền hoàn phải bằng quyền lợi tính từ DB.
+#   Cổng 2 (B4 dòng INVALID / PERTURBED): phê duyệt phải hợp lệ đúng đơn, đúng ticket; không hoàn trùng.
+#   Cổng 3 (B6 dòng 1 và dòng 4): ghi lỗi hãng theo dữ kiện tracking; chỉ gửi hãng các trường chính sách cho phép.
+
+
+def _policy(ctx):
+    """Phiên bản chính sách có hiệu lực vào ngày hôm nay (không tin cờ index_active)."""
+    return H.effective_policy(ctx.tools.lookup_policies(), ctx.as_of)
+
+
+def _facts(ctx, order_id):
+    """Đơn, kiện mà ticket nói tới, số ngày trễ và nguyên nhân theo tracking DB, chính sách hiệu lực."""
+    order = ctx.tools.lookup_order(order_id)
+    pol = _policy(ctx)
+    if order is None or pol is None:
+        return None
+    parcel = H.ticket_parcel(order, ctx.ticket, ctx.as_of)
+    delay = H.db_delay_days(parcel, ctx.as_of)
+    return {"order": order, "policy": pol, "parcel": parcel, "delay": delay, "cause": parcel.get("delay_cause")}
+
 
 def pre_guard(ctx):
+    # Ghim phiên bản chính sách theo ngày hiệu lực (drift khi chính sách đổi phiên bản, xem B3).
+    pol = _policy(ctx)
+    if pol is not None:
+        return Verdict.allow(policy_id=pol["policy_id"])
+    return Verdict.allow()
+
+
+def _gate_refund(ctx, action):
+    """Cổng 1 + Cổng 2: trước issue_refund."""
+    f = _facts(ctx, action.get("order_id"))
+    if f is None:
+        return Verdict.escalate("không tra được đơn hoặc chính sách hiệu lực: chuyển người")
+    order, pol = f["order"], f["policy"]
+
+    # Cổng 1a: kiểm chính sách bị bỏ qua vì LLM lỗi (fail_open) thì không được tự chi tiền.
+    if action.get("basis") == "fail_open":
+        return Verdict.escalate("chưa kiểm được chính sách (LLM lỗi, fail_open): chuyển người")
+    # Cổng 1b: bên chịu tiền chỉ là LOGIX; đổi sang shop phải do người có thẩm quyền quyết.
+    if action.get("payer", "LOGIX") != "LOGIX":
+        return Verdict.escalate("đề xuất đổi bên chịu tiền sang " + str(action.get("payer")) + ": chuyển người")
+    # Cổng 1c: có trễ mà tracking không ghi nguyên nhân thì không suy đoán quyền lợi.
+    if f["delay"] > 0 and not f["cause"]:
+        return Verdict.escalate("tracking thiếu nguyên nhân trễ: chuyển người xác minh")
+
+    # Cổng 2a: không hoàn trùng. Ticket này đã có dòng trong sổ cái (ghi lại sau lỗi xác nhận) thì bỏ lệnh lặp.
+    rows = ctx.tools.ledger_rows(order_id=order["order_id"])
+    if any(r.get("ticket_id") == action.get("ticket_id") for r in rows):
+        ctx.log("duplicate_refund_blocked", order_id=order["order_id"])
+        return Verdict.deny("ticket này đã có khoản hoàn trong sổ cái: bỏ lệnh ghi lặp")
+    if rows:
+        return Verdict.escalate("đơn đã có khoản hoàn trước đó trong sổ cái: chuyển người đối soát")
+
+    # Cổng 1d: số tiền = quyền lợi tính từ tracking DB + chính sách hiệu lực.
+    expected = H.entitlement_vnd(pol, order, f["delay"], f["cause"])
+    if expected <= 0:
+        ctx.log("refund_not_entitled", asked=action.get("amount_vnd"), db_delay_days=f["delay"])
+        return Verdict.deny(f"theo tracking trễ {f['delay']} ngày, nguyên nhân {f['cause']}: không đủ điều kiện hoàn")
+    changes = {}
+    if action.get("amount_vnd") != expected:
+        ctx.log("refund_amount_corrected", asked=action.get("amount_vnd"), expected=expected,
+                db_delay_days=f["delay"])
+        changes["amount_vnd"] = expected
+
+    # Cổng 2b: vượt hạn mức tự động thì phải có phê duyệt hợp lệ cho đúng đơn / ticket / số tiền.
+    if expected > pol["auto_limit_vnd"]:
+        apr = next(iter(ctx.tools.lookup_approvals(approval_id=action.get("approval_id"))), None) \
+            if action.get("approval_id") else None
+        ok = apr is not None and apr.get("status") == "valid" \
+            and apr.get("expires_at", "") >= ctx.as_of \
+            and apr.get("order_id") == order["order_id"] \
+            and apr.get("customer_id") == order["customer_id"] \
+            and apr.get("ticket_id") in (None, action.get("ticket_id")) \
+            and apr.get("max_vnd", 0) >= expected
+        if not ok:
+            return Verdict.escalate("vượt hạn mức tự động mà không có phê duyệt hợp lệ cho đúng đơn: chuyển người duyệt")
+    elif action.get("approval_id"):
+        changes["approval_id"] = None          # số tiền đúng nằm trong hạn mức: không dùng phê duyệt
+
+    if changes:
+        return Verdict.modify("chỉnh theo quyền lợi tính từ tracking DB", **changes)
+    return Verdict.allow()
+
+
+def _gate_fault(ctx, action):
+    """Cổng 3a: chỉ ghi lỗi hãng khi tracking cho thấy hãng thực sự có lỗi; ghi đúng kiện, đúng hãng."""
+    f = _facts(ctx, action.get("order_id"))
+    if f is None or not H.carrier_at_fault(f["policy"], f["parcel"], f["delay"]):
+        return Verdict.deny("tracking không cho thấy hãng có lỗi (độ trễ / nguyên nhân): không ghi lỗi hãng")
+    p = f["parcel"]
+    if ctx.tools.fault_rows(ticket_id=action.get("ticket_id"), parcel_id=p["parcel_id"]):
+        return Verdict.deny("đã ghi lỗi cho kiện này trong ticket này")
+    want = {"parcel_id": p["parcel_id"], "carrier_id": p["carrier_id"], "driver_id": p.get("driver_id"),
+            "delay_days": f["delay"]}
+    changes = {k: v for k, v in want.items() if action.get(k) != v}
+    if changes:
+        ctx.log("carrier_fault_corrected", changes=changes)
+        return Verdict.modify("ghi lỗi theo đúng kiện, hãng và độ trễ trong tracking", **changes)
+    return Verdict.allow()
+
+
+def _gate_notify(ctx, action):
+    """Cổng 3b: chỉ gửi hãng các trường chính sách cho phép (carrier_notice_fields); bỏ chữ khách viết, thông tin người nhận."""
+    pol = _policy(ctx)
+    allowed = set(pol["carrier_notice_fields"]) if pol else {"order_id", "parcel_id", "delay_days"}
+    payload = dict(action.get("payload") or {})
+    kept = {k: v for k, v in payload.items() if k in allowed}
+    f = _facts(ctx, payload.get("order_id"))
+    if f is not None and "delay_days" in kept:
+        kept["delay_days"] = f["delay"]
+    if kept != payload:
+        ctx.log("carrier_payload_trimmed", dropped=sorted(set(payload) - allowed))
+        return Verdict.modify("chỉ gửi hãng các trường chính sách cho phép", payload=kept)
     return Verdict.allow()
 
 
 def write_gate(ctx, action):
     # action = {"tool": "issue_refund", "ticket_id":..., "order_id":..., "amount_vnd":..., "payer":..., ...}
+    tool = action.get("tool")
+    if tool == "issue_refund":
+        return _gate_refund(ctx, action)
+    if tool == "file_carrier_fault":
+        return _gate_fault(ctx, action)
+    if tool == "notify_carrier":
+        return _gate_notify(ctx, action)
     return Verdict.allow()

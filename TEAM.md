@@ -45,3 +45,24 @@ Tôi học được rằng trace cần đối chiếu dữ kiện từ hệ th�
 ### Sử dụng AI
 
 Tôi dùng trợ lý AI để tra cứu yêu cầu trong các file hướng dẫn và hỗ trợ soạn mục cá nhân này. Các phân tích, quyết định, ngưỡng và thay đổi code/config của nhóm cần được các thành viên tự giải thích và chịu trách nhiệm khi demo.
+
+## NguyenTuanHieu-2A202603374
+
+### Phần việc phụ trách
+
+Nguyễn Tuấn Hiếu, vai trò **Sản phẩm và kinh doanh**. Phụ trách câu 1.1, 1.6, 2.3, 2.9, 3.2, phần business của câu 3.5 và soạn dự thảo quyết định Gate 1 tại B8, C12.
+
+### Đóng góp cụ thể
+
+- **Phiếu A (A1, A4):** Viết mục tiêu hệ thống và lập, ký bộ tiêu chí chấp nhận cho Gate 1.
+- **Phiếu B (B3, B7.4, B8):** Lập bản đồ dữ liệu, phân tích rủi ro lệch phiên bản chính sách, cấu hình các cổng kinh doanh và soạn dự thảo quyết định Gate 1 v1.
+- **Phiếu C (C5, C7, C12):** Viết đặc tả LogiX chịu tiền hoàn do giao trễ. Mở phạm vi đánh giá mô phỏng sang tất cả kho trong `config/operating_gates.json` để kiểm đủ 15 ticket S2, đối chiếu chi phí và ROI sau khi nhóm sửa cổng, rồi soạn dự thảo quyết định Gate 1 v2.
+
+### Bằng chứng
+
+- Commit tiêu chí đã ký `784e17a`, bản đồ dữ liệu `6fcf0a9`, cổng kinh doanh vòng 1 `307ac03`, dự thảo B8 `d060665`.
+- Commit đặc tả C5 `6f59f2d`, phạm vi đánh giá và cập nhật C7 `4d139f0`, `b008a62`, dự thảo C12 `44097b8`.
+
+### Exit ticket
+
+Phạm vi thử hẹp có thể bỏ sót lỗi cộng dồn theo khách. Chưa rõ chi phí và thời gian chờ duyệt sẽ thay đổi thế nào khi ticket dồn vào giờ cao điểm.

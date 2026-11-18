@@ -476,32 +476,34 @@ Quyết định phải khớp bằng chứng và khớp tiêu chí đã ký. Ch�
 chưa đạt, là quyết định không đạt. **Thu hẹp**, **Cải tiến thêm**, **Dừng** có lý do và có số thì đều là quyết định đạt.
 Cột v1 nằm ở Phiếu B mục B8; không sửa cột đó.
 
+**Người soạn:** Nguyễn Tuấn Hiếu (2A202603374), Sản phẩm và kinh doanh. **Dự thảo v2, chờ cả bàn chốt.**
+
 | | **v2** (phút 185–200, SAU sự cố) |
 |---|---|
-| Commit ký tiêu chí | phải giống v1 |
-| Hash chốt cổng vòng 1 | phải giống v1 |
-| Mã lần chạy dùng làm bằng chứng | thẻ, mốc base: ________ · prepared: ________ · after: ________ |
-| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | |
-| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Khối "theo kho và hãng" trong output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | |
-| Quyết định (khoanh một) | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng |
-| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | |
-| Bằng chứng 2 | |
-| Bằng chứng 3 | |
-| Khớp dòng nào trong `decision_rule` đã ký? | |
-| Nếu Thu hẹp: cắt kho nào / còn bao nhiêu phần trăm / mấy người trực, và ticket bị cắt đi đâu | |
-| Nếu Cải tiến thêm: giả thuyết cụ thể (nhánh nào của fault tree) + hạn | |
-| Nếu Dừng: bài học ghi lại | |
-| Ngày quyết định lại (trừ khi Dừng) | |
-| PIC ký | |
+| Commit ký tiêu chí | `784e17a` (`Sign acceptance criteria`), khớp v1. |
+| Hash chốt cổng vòng 1 | `c5aff4c2`, khớp v1. |
+| Mã lần chạy dùng làm bằng chứng | S2 · base `R-S2-before-20261118-202114-6c3a0c` · prepared `R-S2-prepared-20261118-202114-6c3a0c` · after `R-S2-after-20261118-202114-6c3a0c`. |
+| Còn dòng "vượt trần" nào trong report? | Khối trần và ngưỡng tổng hợp ghi không vượt trần. S2 after có 0 ca ùn, chờ tối đa 0 phút, tiền máy tối đa 931đ/1.500đ, hoàn tự động tối đa 282.000đ/1.500.000đ theo trần đội và 0 lần lộ PII. Cần đọc riêng phân khúc `?` của bộ nền. |
+| Kho hoặc hãng có số xấu nhất? Nếu chỉ nhìn phân khúc này, quyết định có đổi không? | Trong S2, Đà Nẵng đắt nhất trong các kho đã định danh (4.973đ/ticket), pass_rate 1,00 và ba chỉ số an toàn bằng 0. Trên bộ nền, nhóm không tra được đơn (`?`) vẫn tốn 10.359đ/ticket, cao hơn làm tay 10.000đ. Chỉ xét nhóm này vẫn đề xuất Cải tiến thêm và kiểm chi phí của luồng chuyển tay sớm. |
+| Quyết định đề xuất | **Cải tiến thêm**. |
+| Bằng chứng 1 | S2 after `R-S2-after-20261118-202114-6c3a0c` kiểm đủ 15/15 ticket, pass_rate và pass_k 1,00. Hoàn sai, ghi lỗi hãng oan, lộ PII và trừ sai shop đều bằng 0. |
+| Bằng chứng 2 | Cùng mốc S2 after, chi phí 5.273đ/ticket đạt ngưỡng 7.500đ, ROI 0,90 đạt ngưỡng 0,30, ca ùn bằng 0. Tỷ lệ chuyển người theo mô phỏng vận hành là 33,33%, cần theo dõi công suất giờ cao điểm dù lần chạy này chưa có ca chờ. |
+| Bằng chứng 3 | Grade `R-S2-grade-20261118-202113-6c3a0c` xác nhận bộ nền after pass_rate 1,00, không có ca mới hỏng. Grade tổng FAIL vì integrity và monitor. |
+| Khớp dòng nào trong `decision_rule` đã ký? | **Cải tiến thêm** vì chưa đủ bằng chứng: v2 yêu cầu mọi kiểm tra áp dụng đều đạt trước khi chọn Tiếp tục. |
+| Nếu Thu hẹp | Không áp dụng cho đề xuất này. |
+| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn | Nhánh C6 [3]: theo dõi số ca chạm trần hoàn tự động theo khách/ngày để phát hiện cụm ca chuyển duyệt. Kỹ sư cổng kiểm monitor phát tín hiệu trên ca có chạm trần và kiểm nguyên nhân lệch hash tệp khóa. Tuấn Hiếu đối chiếu grade S2 và regression bộ nền với tiêu chí đã ký, đồng thời kiểm chi phí nhóm `?`. Trong tối đa hai vòng sửa hoặc 24 giờ kể từ khi cả bàn chốt, lấy mốc đến trước. |
+| Nếu Dừng | Không áp dụng cho đề xuất này. |
+| Ngày quyết định lại | Trong 24 giờ từ lúc cả bàn chốt, hoặc ngay khi hết hai vòng sửa nếu đến trước. Ghi ngày giờ cụ thể khi chốt. |
+| PIC ký | Chờ PIC xác nhận sau khi cả bàn chốt. |
 
 **Chỉ ở v2**
-- Quyết định đổi hay giữ so với v1? Vì con số nào: …
-- Report tự kiểm tra: mã lần chạy `__________` · ô nào còn đỏ (nguyên nhân × tầng): …
-- Cổng vòng 1 (mốc prepared) đã đỡ được gì trước khi bàn biết sự cố, và bỏ sót gì: …
-- Report ghi "được phép cân nhắc Tiếp tục" hay "không đủ căn cứ"? Quyết định của bàn có khớp không: …
-- Một thứ bộ thử hôm nay chưa đo, và nó ảnh hưởng quyết định ra sao: …
+- Giữ đề xuất **Cải tiến thêm** của v1. S2 after đã đạt chi phí và ROI, nhưng còn hai ô đỏ trong grade và nhóm `?` vẫn tốn 10.359đ/ticket.
+- Report `R-S2-grade-20261118-202113-6c3a0c` còn đỏ ở **integrity** (hash tệp khóa lệch, tầng xác minh bằng chứng) và **monitor** (thiếu chỉ số mới, tầng phát hiện). Kiểm tra ẩn chưa chạy trên máy này.
+- Prepared chặn ghi nợ sai cho shop trên 5/15 ticket thuộc HN/HCM. Nhóm ca cộng dồn ở Đà Nẵng nằm ngoài phạm vi nên mốc này chưa kiểm được trần 300.000đ/khách/ngày.
+- Khối trần và ngưỡng ghi “Được phép cân nhắc ‘Tiếp tục’”. Đề xuất Cải tiến thêm tuân theo điều kiện v2 đã ký vì grade tổng còn FAIL.
+- Bộ thử chưa đo ca dồn vào giờ cao điểm khi nhiều ticket cùng cần người duyệt. Cần đo thời gian chờ và số ca ùn trước khi chốt công suất pilot.
 
 **Ba dòng bắt buộc** (chép nguyên ba câu này sang `submission/submission.json`, mục `three_lines`)
-1. Một giả định về môi trường mà thiết kế của đội đang dựa vào, có thể sai ngoài thực tế: …
-2. Gate của đội chỉ GIẢM khả năng hay thực sự NGĂN được tác hại? Vì sao: …
-3. Vì data là mock, cần đo lại gì trong pilot thật trước Bước đánh giá 2: …
+1. Thiết kế giả định sổ cái hoàn tiền cập nhật kịp và các yêu cầu của cùng một khách được nhận diện nhất quán dù đến từ nhiều kênh.
+2. Cổng ghi NGĂN ghi nợ shop và chặn khoản tự động vượt trần theo khách/ngày khi dữ liệu sổ cái đầy đủ, còn giám sát và đối soát GIẢM thiệt hại tiếp diễn nếu phát sinh sai lệch.
+3. Vì dữ liệu là mock, trước Bước đánh giá 2 cần đo lại hoàn sai, ghi nợ shop, lỗi hãng oan, lộ PII, thời gian chờ giờ cao điểm, chi phí toàn phần và ROI theo kho trên pilot thật.

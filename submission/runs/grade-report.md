@@ -1,9 +1,9 @@
-# Tự kiểm tra sự cố S2 · FAIL
+# Tự kiểm tra sự cố S2 · PASS-VISIBLE (chưa chạy test ẩn)
 
 *Đây là kết quả TỰ KIỂM TRA của bàn, không phải điểm. Bài được một team chấm tự động chấm lại sau buổi học.*
 
-- Mã lần chạy: `R-S2-grade-20261118-213049-161959` · bàn: `K5-L3A-DAY10-GGEZ-PoCtoPilotGate1` · grader `lab10-1.0` · 0.79s
-- Ba mốc: base `R-S2-before-20261118-213050-161959` · prepared `R-S2-prepared-20261118-213050-161959` · after `R-S2-after-20261118-213050-161959` (report + trace trong runs/)
+- Mã lần chạy: `R-S2-grade-20261118-215953-161959` · bàn: `K5-L3A-DAY10-GGEZ-PoCtoPilotGate1` · grader `lab10-1.0` · 0.522s
+- Ba mốc: base `R-S2-before-20261118-215954-161959` · prepared `R-S2-prepared-20261118-215954-161959` · after `R-S2-after-20261118-215954-161959` (report + trace trong runs/)
 - Mốc prepared (cổng vòng 1): đã chốt `c5aff4c2`, còn nguyên
 - Hash code đội (guards + monitors + switches + cổng vận hành): `1619595bd54a`
 - Hash Bản tiêu chí chấp nhận: `042370e4ef62` · đã ký: `042370e4ef62` · KHÔNG ĐỔI
@@ -11,7 +11,7 @@
 
 | Kiểm | Kết quả | Chi tiết |
 |---|---|---|
-| 1 integrity | ❌ | file khoá bị đổi: ['data/tickets.jsonl', 'data/world.json', 'incidents/S1/card.json', 'incidents/S1/card.md', 'incidents/S1/tickets.jsonl', 'incidents/S1/world_patch.json', 'incidents/S2/card.json', 'incidents/S2/card.md', 'incidents/S2/tickets.jsonl', 'incidents/S2/world_patch.json', 'incidents/S3/card.json', 'incidents/S3/card.md', 'incidents/S3/tickets.jsonl', 'incidents/S3/world_patch.json', 'incidents/S4/card.json', 'incidents/S4/card.md', 'incidents/S4/tickets.jsonl', 'incidents/S4/world_patch.json', 'incidents/S5/card.json', 'incidents/S5/card.md', 'incidents/S5/tickets.jsonl', 'incidents/S5/world_patch.json', 'incidents/S6/card.json', 'incidents/S6/card.md', 'incidents/S6/tickets.jsonl', 'incidents/S6/world_patch.json', 'incidents/S7/card.json', 'incidents/S7/card.md', 'incidents/S7/tickets.jsonl', 'incidents/S7/world_patch.json', 'incidents/S8/card.json', 'incidents/S8/card.md', 'incidents/S8/tickets.jsonl', 'incidents/S8/world_patch.json', 'lab10/__init__.py', 'lab10/_gradectx.py', 'lab10/_noop_guards.py', 'lab10/agent.py', 'lab10/check_submission.py', 'lab10/checkpoint.py', 'lab10/criteria.py', 'lab10/eval.py', 'lab10/gate.py', 'lab10/grade.py', 'lab10/helpers.py', 'lab10/mock_llm.py', 'lab10/ops.py', 'lab10/tools.py', 'lab10/trace.py', 'lab10/world.py', 'tests/test_public.py'] |
+| 1 integrity | ✅ | file khoá bị đổi: không |
 | 2 criteria | ✅ | đã ký, còn nguyên |
 | 3 visible | ✅ | base có vấn đề: True; after sạch: True; ticket còn hỏng: không; trần còn vượt: không |
 | 4 hidden | — | máy này không có bài kiểm tra ẩn (team chấm sẽ chạy sau buổi học) |

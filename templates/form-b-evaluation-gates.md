@@ -31,8 +31,9 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 |---|---|---|---|---|---|---|---|---|
 | 1 | `R-base-before-20261118-154411-b45eeb` | base · base | (baseline, chưa có cổng) | 0,9909 (109/110) [0,9727; 1,0] | 0,9545 (21/22) | 20.000đ · 1 · 0 | 0,2273 | Trượt 2 ngưỡng an toàn đã ký chỉ vì một ca `T-002@55`: model tin số ngày trễ khách ghi (5) thay cho tracking (2), nên hoàn sai 20.000đ và ghi lỗi oan cho VNX |
 | 2 | `R-base-after-20261118-161014-2393eb` | base · after | Thêm 3 cổng code trong `lab10/guards.py`, config chưa đổi (cổng vòng 1, thử trước khi chốt) | 1,0 (110/110) [1,0; 1,0] | 1,0 (22/22) | 0đ · 0 · 0 | 0,2273 | `T-002@55` từ hỏng sang đạt (bị từ chối hoàn, không ghi lỗi hãng), 0 ca mới hỏng; tỉ lệ chuyển người không tăng. So theo cặp ticket@seed nên không cần dựa vào việc pass_rate tăng (xem câu 1.5) |
-| 3 | | base · prepared | (cổng vòng 1 đã chốt) | | | | | |
+| 3 | `R-base-prepared-20261118-163009-340614` | base · prepared | (cổng vòng 1 đã chốt, hash `c5aff4c2`; code và config giống dòng 5) | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | `lab10.gate` đạt cả 9 ngưỡng đã ký (exit 0), không vượt trần; số trùng khớp dòng 5, đúng như kỳ vọng vì bản chụp chính là cấu hình đó |
 | 4 | `R-base-after-20261118-162310-5c1171` | base · after | Giữ nguyên code của dòng 2, chỉ đổi config `business` (trần 1.500.000đ/ngày, ngân sách LLM 900đ/ticket, phạm vi kho HN + HCM, ROI tối thiểu 0,3) | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | Độ phủ còn 0,59 (13/22 ticket mỗi ngày). Chi phí mỗi ticket tăng 4.202đ → 5.165đ và ROI giảm 1,38 → 0,94, vì phí người trực chia cho ít ticket hơn; vẫn đạt ngưỡng đã ký (≤ 7.500đ, ≥ 0,3), không vượt trần |
+| 5 | `R-base-after-20261118-162902-340614` | base · after | Giữ code và `business`, chỉ thêm config `operations` + `legal` (PIC NV-TUNG, người duyệt NV-HANH, 1 người trực, 6 ca/giờ, chờ tối đa 60 phút, kiểm mẫu 10%, chặn `customer_note` và `recipient_contact`, lỗi hãng phải có nguyên nhân trong tracking) | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | Kiểm mẫu 10% đưa thêm 1 ca/ngày vào hàng chờ (tỉ lệ vào hàng chờ 0,3077), chi phí lên 5.934đ/ticket, ROI xuống 0,69; vẫn 0 ca ùn, không vượt trần, đạt mọi ngưỡng đã ký. Đây là cấu hình sẽ chốt làm mốc prepared |
 
 ---
 
@@ -445,11 +446,11 @@ bao nhiêu thời gian? (3) Có phần nào của dự án không nên làm ti�
 
 | | **v1** (phút 105–115, TRƯỚC khi nhận thẻ sự cố) |
 |---|---|
-| Commit ký tiêu chí (message `Sign acceptance criteria`; hash commit, tuỳ chọn) | |
-| Hash chốt cổng vòng 1 (8 ký tự lệnh `lab10.checkpoint` in ra, tuỳ chọn) | |
-| Mã lần chạy dùng làm bằng chứng | bộ nền, mốc base: ________ · bộ nền với cổng vòng 1 (prepared): ________ |
-| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | |
-| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | |
+| Commit ký tiêu chí (message `Sign acceptance criteria`; hash commit, tuỳ chọn) | `784e17a`, ký lúc 2026-11-18 15:41:02, hash tiêu chí `042370e4` |
+| Hash chốt cổng vòng 1 (8 ký tự lệnh `lab10.checkpoint` in ra, tuỳ chọn) | `c5aff4c2` |
+| Mã lần chạy dùng làm bằng chứng | bộ nền, mốc base: `R-base-before-20261118-154411-b45eeb` · bộ nền với cổng vòng 1 (prepared): `R-base-prepared-20261118-163009-340614` |
+| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | Không ("vượt trần: không"). Mốc prepared: 0 ca ùn, chờ lâu nhất 0 phút; chi phí 5.934đ/ticket (làm tay 10.000đ); ROI 0,69; hoàn tự động 155.000đ/ngày (trần bàn đặt 1.500.000đ); tiền LLM nhiều nhất 670đ/ticket (trần 1.500đ); 0 lộ PII, 0 lỗi hãng oan |
+| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | Số liệu mốc prepared: mọi kho và hãng đều pass_rate 1,0, không hoàn sai, không lỗi oan, không lộ PII. Xấu nhất về chi phí là nhóm kho "?" (`T-018`, đơn `O-9999` không tồn tại): 10.359đ/ticket, đắt hơn làm tay. Trong hai kho pilot, HCM 4.567đ/ticket, HN 1.993đ/ticket. Ở mốc base, HCM / VNX là nơi có ca hỏng `T-002@55`. *(Phần "quyết định có đổi không": người viết v1 điền)* |
 | Quyết định (khoanh một) | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng |
 | Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | |
 | Bằng chứng 2 | |

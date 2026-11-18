@@ -95,3 +95,31 @@ Nguyễn Tuấn Hiếu, vai trò **Sản phẩm và kinh doanh**. Phụ trách c
 ### Exit ticket
 
 Phạm vi thử hẹp có thể bỏ sót lỗi cộng dồn theo khách. Chưa rõ chi phí và thời gian chờ duyệt sẽ thay đổi thế nào khi ticket dồn vào giờ cao điểm.
+
+## NguyenTrungAnh-2A202603413
+
+### Phần việc phụ trách
+
+Kỹ sư cổng. Phụ trách offline metric ở câu 1.3 (Phiếu A); chạy toàn bộ lệnh của nhóm: ký tiêu chí, eval ba mốc, chốt cổng vòng 1 (`lab10.checkpoint`), grade; viết phần code chính của `lab10/guards.py` ở câu 2.6 (cổng vòng 1) và 3.5 (cổng vòng 2) cùng Hoàng Anh; trace ticket hỏng ở câu 3.1; chạy lệnh trong demo.
+
+### Đóng góp cụ thể
+
+- Câu 1.3: đặt offline metric "tỉ lệ ghi lỗi oan" cho bước `file_carrier_fault`.
+- Chạy `lab10.criteria sign` và commit bản tiêu chí trước lần đo đầu tiên (ký 15:41, lần eval đầu 15:44).
+- Câu 2.1, 2.6: chạy mốc base, tìm ra ca hỏng duy nhất `T-002@55` (ghi lỗi hãng theo số ngày trễ khách tự ghi). Viết 3 cổng vòng 1 trong `write_gate`: ép tiền hoàn về quyền lợi tính từ DB, kiểm phê duyệt trong DB, ghi lỗi hãng chỉ khi tracking DB xác nhận và lấy số ngày trễ từ DB; payload báo hãng chỉ giữ các trường chính sách cho phép. Bộ nền lên 1.0, không regression; chốt cổng vòng 1 (hash `c5aff4c2`).
+- Câu 3.1: chạy grade thẻ S2 trước khi sửa, trace và ghi 3 lỗi im lặng ở C2: chỉ dẫn trong ticket đổi `payer` sang MERCHANT, injection qua `checkout_note`, và một khách chia nhiều ticket để vượt trần hoàn mỗi ngày.
+- Câu 3.5: sửa cổng vòng 2, mỗi lần đổi MỘT thứ và chạy eval sau mỗi lần: (1) `payer` khác LOGIX thì modify về LOGIX thay vì chuyển người, đưa tỉ lệ chuyển người trên S2 từ 0.8 về 0; (2) thêm trần hoàn tự động 300.000đ/khách/ngày. Điền C0 và C7. Chạy thử các phương án config (phạm vi kho, `decision_note`) để gợi ý cho Hiếu và Huy Hoàng.
+
+### Bằng chứng
+
+- Commit: `9f12f23` (1.3), `784e17a` (ký tiêu chí), `731a750` (2.1), `e69312c` (2.6), `7eb8d14`, `947ba56` (chốt vòng 1, B8), `f646fa5` (3.1), `df3ae03` (3.5).
+- Mã lần chạy: base `R-base-before-20261118-154411-b45eeb`; prepared S2 `R-S2-prepared-20261118-165310-340614`; sau từng bản sửa `R-S2-after-20261118-170943-7c5392`, `R-S2-after-20261118-171021-0099ac`; kiểm regression `R-base-after-20261118-171021-0099ac`.
+- Phiếu: `templates/form-a-criteria.md` A2 cột Offline; `templates/form-b-evaluation-gates.md` B0, B1, B7.1, B8; `templates/form-c-incident.md` C0, C2, C7.
+
+### Exit ticket
+
+Tôi học được rằng cổng ghi phải lấy dữ kiện từ DB chứ không tin chữ trong ticket, và "chặn bằng cách chuyển người" tuy an toàn nhưng có thể làm hỏng bài toán kinh tế: ở vòng 1 S2 sạch lỗi mà ROI vẫn âm vì 80% ca bị chuyển người. Tôi còn chưa chắc trần 300.000đ/khách/ngày có đủ khi kẻ gian chia nhiều tài khoản hoặc trải ra nhiều ngày, và sổ cái trong pilot thật có cập nhật kịp để cổng cộng dồn đúng hay không.
+
+### Sử dụng AI
+
+Tôi dùng Claude Code để đọc hướng dẫn lab, gợi ý và viết code cổng trong `guards.py`, chạy lệnh eval/grade và soạn nháp các ô phiếu cùng mục cá nhân này. Tôi tự kiểm tra kết quả bằng report, unittest và trace trước khi commit, và chịu trách nhiệm giải thích code khi demo.

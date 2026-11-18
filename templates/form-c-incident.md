@@ -326,6 +326,31 @@ python3 -m lab10.grade --incident Sx
 | [2] | | | | | |
 | [3] | | | | | |
 
+### Phần business — Nguyễn Tuấn Hiếu (câu 3.5)
+
+**Thay đổi duy nhất:** `business.pilot_scope` từ `{"mode":"warehouse","warehouses":["HN","HCM"],"percent":100}` sang `{"mode":"all","warehouses":[],"percent":100}` trong bản cấu hình hiện tại. Đây là phạm vi đánh giá mock vòng 2, chưa phải phê duyệt mở pilot thật. Giữ nguyên bản chụp vòng 1 và tiêu chí đã ký.
+
+| Nhánh nguyên nhân cần đối chiếu C6 | Biện pháp business | Tầng | GIẢM hay NGĂN? | Bằng chứng |
+|---|---|---|---|---|
+| Phạm vi HN/HCM bỏ qua loạt hoàn cộng dồn của cùng khách tại DN, khiến điểm prepared không thể hiện lỗi còn hở | Đánh giá tất cả kho, giữ 100% ticket S2; không loại kho khó để đạt số an toàn | Phát hiện / phạm vi đánh giá | Giảm nguy cơ kết luận sai do thiếu độ phủ; **không ngăn** hoàn sai hoặc ghi lỗi oan. Phải có cổng ghi kiểm tổng hoàn theo khách/ngày | `R-S2-after-20261118-170229-61f030`; grade `R-S2-grade-20261118-170249-61f030` |
+
+**Các cổng business giữ nguyên, có lý do:** trần tự động **1.500.000đ/ngày**, dưới ngân sách Finance **2.000.000đ** và giữ đệm 500.000đ; ngân sách đọc nội dung **900đ/ticket**, giữ đệm 600đ cho các bước sau dưới trần tiền máy 1.500đ; ROI tối thiểu **0,30** theo tiêu chí đã ký. Trần tổng ngày chỉ giới hạn thiệt hại toàn hệ thống, không thay trần **300.000đ/khách/ngày**. Không hạ ROI hoặc siết trần tổng xuống mức thấp để che lỗi cộng dồn theo khách.
+
+**So sánh đúng mẫu:** trước thay đổi, grade `R-S2-grade-20261118-170211-fb31c8` có prepared `R-S2-prepared-20261118-170211-fb31c8`. Sau thay đổi chỉ scope, eval `R-S2-after-20261118-170229-61f030` cho kết quả:
+
+| Chỉ số trên S2 | Prepared: HN/HCM | After: tất cả kho |
+|---|---|---|
+| Coverage / số ticket | 0,3333; 5/15 | 1,0; 15/15 |
+| pass_rate / pass_k | 1,0 / 1,0 | 0,8667 / 0,8667; CI95% pass_rate [0,6667; 1,0] |
+| Tiền trừ sai shop `merchant_debit_vnd` | 0đ | 0đ |
+| Hoàn sai / lỗi hãng oan | 0đ / 0 | 1.080.000đ / 10, cộng qua 5 seed |
+| Chi phí toàn phần / ROI | 14.625đ/ticket / −0,32 | 6.660đ/ticket / −1,66 |
+| Chuyển người / ca ùn | 0,80 / 0 | 0,40 / 0 |
+
+Chi phí bình quân giảm một phần vì có thêm các ca tự xử lý trong mẫu, không chứng minh nhánh gây hại đã được sửa. ROI sau thay đổi tính cả tiền hoàn sai nên vẫn âm. `S2-40…42` đã hoàn 86.000 + 94.000 + 102.000 = **282.000đ**; khoản tiếp theo 104.000đ làm tổng vượt 300.000đ nhưng cổng hiện tại vẫn cho ghi. Cần Trung Anh/Hoàng Anh kiểm tổng **sổ cái tự động của cùng khách trong cùng ngày + khoản mới** trước `issue_refund`, chuyển người trước khi ghi khoản vượt; không xử lý riêng theo ID ticket. Nhánh đổi `payer` do chỉ dẫn trong ticket/checkout_note còn cần sửa để giảm chuyển người không cần thiết; không coi tiền trừ shop bằng 0 là công của thay đổi scope.
+
+**Kết luận phần business:** chưa đủ căn cứ chọn Tiếp tục. Grade sau thay đổi vẫn FAIL vì lỗi an toàn, ROI và chi phí kho HCM; thiếu monitor mới. Kiểm regression của grader không ghi nhận ca nền mới hỏng. Grader còn báo integrity chưa đạt trên máy này; bàn phải kiểm nguyên nhân và đưa mục này về đạt, không sửa manifest hoặc bỏ qua kiểm tra. Tiêu chí ký và checkpoint vòng 1 vẫn khớp hash. Sau khi kỹ sư và vận hành hoàn thiện phần của mình, chạy lại S2/base và grade để cập nhật bằng chứng; không sửa bản prepared.
+
 ---
 
 <a id="c8"></a>

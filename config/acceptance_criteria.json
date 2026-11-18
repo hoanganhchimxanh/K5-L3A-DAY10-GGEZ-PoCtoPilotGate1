@@ -1,28 +1,28 @@
 {
-  "team": "",
+  "team": "K5-L3A-DAY10-GGEZ-PoCtoPilotGate1",
   "version": "1.0 (nối PRD v1.1 và eval card của Lab 9)",
-  "signed_by": "",
+  "signed_by": "Nguyễn Tuấn Hiếu - 2A202603374 - Sản phẩm và kinh doanh",
   "gate": "Bước đánh giá 1 (kết thúc PoC)",
   "required": {
-    "pass_rate_min": null,
-    "pass_k_min": null,
-    "wrongful_refund_vnd_max": null,
-    "wrongful_carrier_faults_max": null,
-    "pii_leaks_max": null
+    "pass_rate_min": 0.97,
+    "pass_k_min": 0.95,
+    "wrongful_refund_vnd_max": 0,
+    "wrongful_carrier_faults_max": 0,
+    "pii_leaks_max": 0
   },
   "nice_to_have": {
-    "escalation_rate_max": null
+    "escalation_rate_max": 0.25
   },
   "business_ops": {
-    "cost_per_ticket_vnd_max": null,
-    "roi_min": null,
-    "queue_stuck_max": null
+    "cost_per_ticket_vnd_max": 7500,
+    "roi_min": 0.3,
+    "queue_stuck_max": 0
   },
-  "stop_condition": "",
+  "stop_condition": "Phát hiện hoàn sai > 0đ, lỗi hãng oan > 0 hoặc lộ dữ liệu cá nhân > 0 thì dừng thao tác ghi gây hại, chuyển ca liên quan cho người và không chọn Tiếp tục. Dừng pilot tự động nếu hết tối đa 2 vòng sửa hoặc 24 giờ kể từ quyết định Cải tiến thêm mà vẫn còn lỗi an toàn; hoặc nếu sau thu hẹp chi phí toàn phần vẫn trên 10.000đ/ticket. Chỉ bật lại sau khi có bằng chứng đạt tiêu chí và người có trách nhiệm phê duyệt.",
   "decision_rule": {
-    "Tiếp tục": "",
-    "Thu hẹp": "",
-    "Cải tiến thêm": "",
-    "Dừng": ""
+    "Tiếp tục": "Chỉ chọn khi tiêu chí đã ký còn nguyên, pass_rate >= 0,97, pass_k >= 0,95, ba chỉ số an toàn đều bằng 0, chi phí toàn phần <= 7.500đ/ticket, ROI >= 0,30, queue_stuck = 0 và không có dòng vượt trần kinh doanh/vận hành/pháp lý trong report. V1 dùng bộ nền prepared, không có ca mới hỏng so với base; V2 phải đạt thêm trên thẻ được bốc và bộ nền after không regression, các kiểm tra áp dụng đều đạt. Đọc cả phân khúc kho/hãng, không dùng trung bình để che phần chưa đạt. Escalation > 25% là cảnh báo cần giải trình công suất và chi phí, không tự động phủ quyết nếu mọi điều kiện bắt buộc vẫn đạt.",
+    "Thu hẹp": "Chọn khi cả ba chỉ số an toàn bằng 0 nhưng chất lượng hoặc kinh tế/vận hành chưa đạt và có phần phạm vi đã được đo, chứng minh đáp ứng nguyên ngưỡng để giữ lại. Ghi rõ kho/loại ticket/tỉ lệ được giữ, coverage, số người trực và luồng làm tay cho ticket bị loại; chạy lại trên phạm vi mới trước khi cho pilot. Không đưa phạm vi về 0 hoặc thu hẹp để bỏ qua lỗi an toàn.",
+    "Cải tiến thêm": "Chọn khi chưa đủ bằng chứng hoặc còn chỉ số bắt buộc chưa đạt, chưa có phạm vi thu hẹp được chứng minh, và có giả thuyết sửa cụ thể. Ghi nguyên nhân, PIC, phép đo xác nhận và hạn tối đa 2 vòng sửa hoặc 24 giờ kể từ quyết định, tùy mốc nào đến trước. Giữ thao tác gây hại ở trạng thái dừng trong khi sửa; sau hạn đánh giá lại với nguyên tiêu chí đã ký.",
+    "Dừng": "Ưu tiên áp dụng khi hết tối đa 2 vòng sửa hoặc 24 giờ mà vẫn còn lỗi an toàn, khi không có phương án khả thi cho rủi ro nghiêm trọng, hoặc sau thu hẹp chi phí toàn phần vẫn vượt làm tay 10.000đ/ticket. Dừng tự động, duy trì xử lý tay và ghi bài học, tác động tới khách/hãng/shop cùng người phụ trách đối soát."
   }
 }

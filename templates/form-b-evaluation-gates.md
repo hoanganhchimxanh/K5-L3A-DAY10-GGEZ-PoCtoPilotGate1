@@ -478,3 +478,6 @@ git add lab10/guards.py lab10/guards_round1.py config/operating_gates.json confi
 git commit -m "LAB 10: chốt cổng vòng 1, quyết định v1"
 git push -u origin main
 ```
+
+
+**Ghi nhận khi gom bài:** người dùng xác nhận dùng quyết định v1 **Cải tiến thêm** trong phiên làm việc; giữ nguyên phần đề xuất và bằng chứng vòng 1 ở trên để bảo toàn lịch sử, không xác nhận thay chữ ký PIC hoặc thời điểm chốt trong quá khứ.

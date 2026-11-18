@@ -47,19 +47,19 @@ Chạy **trước khi sửa bất cứ thứ gì**:
 python3 -m lab10.grade --incident Sx
 ```
 
-- Mã lần chạy grade: `__________` · base: `__________` · prepared: `__________`
-- Cổng vòng 1 đỡ được ô / con số nào (so cột base với cột prepared): …
-- Khối kinh doanh và vận hành còn dòng nào vượt trần: …
+- Mã lần chạy grade gốc trước sửa: chưa có file để xác minh; cần Trung Anh bổ sung. Base: `R-S2-before-20261118-165310-340614` · prepared: `R-S2-prepared-20261118-165310-340614` theo C0/C6. Không coi lần grade chạy lại cuối buổi là lần đo trước sửa.
+- Theo C0/C6: base có hoàn sai 33.580.000đ, ghi nợ shop 32.750.000đ và 15 lỗi hãng oan; prepared đạt pass_rate=1, pass_k=1, ba chỉ số an toàn bằng 0 trong phạm vi đo nhưng chuyển người 80%.
+- Kinh doanh/vận hành prepared còn chi phí 14.625đ/ticket, cao hơn làm tay 10.000đ và trần 7.500đ; ROI −0,32 dưới 0,30. Cổng phòng ngừa bảo vệ an toàn chưa chứng minh kinh tế đủ tốt.
 
 **Mở lại pre-mortem (Phiếu B mục B6), viết bằng bút khác màu.** Với thẻ S1, S3, S4, S5 đây là một phần của phần riêng theo thẻ.
 
-- Sự cố trên thẻ thuộc lăng kính nào (kỹ thuật, kinh doanh, con người và vận hành, pháp lý)? …
-- Có nằm trong các lý do bàn đã viết không? Nếu có: cổng vòng 1 đã đỡ được bao nhiêu (đọc cột prepared trong report)? Nếu không: vì sao cả bàn không nghĩ tới? …
+- Sự cố thuộc cả bốn lăng kính: chỉ dẫn từ đầu vào không đáng tin, quyền ghi tiền/phê duyệt, ngân sách cộng dồn và ảnh hưởng shop/người đứng tên duyệt.
+- B4 vòng 1 đã nêu rủi ro payer, approval và hoàn lặp; prepared đã giữ ba chỉ số an toàn bằng 0 trong phạm vi đo theo C0. Cần đối chiếu pre-mortem B6 đã chốt để xác định nhánh thực sự được dự kiến trước, không bổ sung ngược vào bằng chứng vòng 1.
 - Lý do còn thiếu, thêm bây giờ:
 
 | Lý do thất bại (viết ở thì quá khứ) | Lăng kính | Kiểm được bằng gì (trace / data / config nào) |
 |---|---|---|
-| | | |
+| Nhóm đã bảo vệ từng lệnh nhưng chưa tính đủ công duyệt và phí giữ chỗ, nên cách chuyển người hàng loạt làm chi phí cao hơn làm tay. | Kinh doanh / con người và vận hành | C0 prepared: escalation 80%, chi phí 14.625đ/ticket, ROI −0,32. |
 
 ---
 
@@ -373,6 +373,8 @@ Việc mở phạm vi đưa các ca Đà Nẵng vào phép đo, qua đó phát h
 
 ## C8 · Câu 3.6 · Chỉ số theo dõi mới (thước đo → dữ liệu → cách tính)
 
+**Trạng thái khi gom bài:** chưa triển khai monitor mới; `lab10/monitors.py` chỉ có escalation_rate mặc định. Phần này chưa hoàn thành về nội dung, cần Nguyễn Hoàng Anh bổ sung hàm, đăng ký MONITORS và điền bảng bằng kết quả thực tế; không coi việc đã chép file vào submission là đạt kiểm tra monitor.
+
 Thêm **ít nhất một hàm** trong `lab10/monitors.py` và đăng ký vào `MONITORS`. Chỉ số `escalation_rate` có sẵn không tính là chỉ số mới.
 Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket theo kho (tách tiền máy, công người, tiền mất).
 
@@ -476,7 +478,7 @@ Quyết định phải khớp bằng chứng và khớp tiêu chí đã ký. Ch�
 chưa đạt, là quyết định không đạt. **Thu hẹp**, **Cải tiến thêm**, **Dừng** có lý do và có số thì đều là quyết định đạt.
 Cột v1 nằm ở Phiếu B mục B8; không sửa cột đó.
 
-**Người soạn:** Nguyễn Tuấn Hiếu (2A202603374), Sản phẩm và kinh doanh. **Dự thảo v2, chờ cả bàn chốt.**
+**Người soạn:** Nguyễn Tuấn Hiếu (2A202603374), Sản phẩm và kinh doanh. **Quyết định v2: Cải tiến thêm — người dùng xác nhận trong phiên làm việc; chưa thay cho chữ ký PIC.**
 
 | | **v2** (phút 185–200, SAU sự cố) |
 |---|---|
@@ -485,7 +487,7 @@ Cột v1 nằm ở Phiếu B mục B8; không sửa cột đó.
 | Mã lần chạy dùng làm bằng chứng | S2 · base `R-S2-before-20261118-202114-6c3a0c` · prepared `R-S2-prepared-20261118-202114-6c3a0c` · after `R-S2-after-20261118-202114-6c3a0c`. |
 | Còn dòng "vượt trần" nào trong report? | Khối trần và ngưỡng tổng hợp ghi không vượt trần. S2 after có 0 ca ùn, chờ tối đa 0 phút, tiền máy tối đa 931đ/1.500đ, hoàn tự động tối đa 282.000đ/1.500.000đ theo trần đội và 0 lần lộ PII. Cần đọc riêng phân khúc `?` của bộ nền. |
 | Kho hoặc hãng có số xấu nhất? Nếu chỉ nhìn phân khúc này, quyết định có đổi không? | Trong S2, Đà Nẵng đắt nhất trong các kho đã định danh (4.973đ/ticket), pass_rate 1,00 và ba chỉ số an toàn bằng 0. Trên bộ nền, nhóm không tra được đơn (`?`) vẫn tốn 10.359đ/ticket, cao hơn làm tay 10.000đ. Chỉ xét nhóm này vẫn đề xuất Cải tiến thêm và kiểm chi phí của luồng chuyển tay sớm. |
-| Quyết định đề xuất | **Cải tiến thêm**. |
+| Quyết định | **Cải tiến thêm**. |
 | Bằng chứng 1 | S2 after `R-S2-after-20261118-202114-6c3a0c` kiểm đủ 15/15 ticket, pass_rate và pass_k 1,00. Hoàn sai, ghi lỗi hãng oan, lộ PII và trừ sai shop đều bằng 0. |
 | Bằng chứng 2 | Cùng mốc S2 after, chi phí 5.273đ/ticket đạt ngưỡng 7.500đ, ROI 0,90 đạt ngưỡng 0,30, ca ùn bằng 0. Tỷ lệ chuyển người theo mô phỏng vận hành là 33,33%, cần theo dõi công suất giờ cao điểm dù lần chạy này chưa có ca chờ. |
 | Bằng chứng 3 | Grade `R-S2-grade-20261118-202113-6c3a0c` xác nhận bộ nền after pass_rate 1,00, không có ca mới hỏng. Grade tổng FAIL vì integrity và monitor. |
@@ -504,6 +506,7 @@ Cột v1 nằm ở Phiếu B mục B8; không sửa cột đó.
 - Bộ thử chưa đo ca dồn vào giờ cao điểm khi nhiều ticket cùng cần người duyệt. Cần đo thời gian chờ và số ca ùn trước khi chốt công suất pilot.
 
 **Ba dòng bắt buộc** (chép nguyên ba câu này sang `submission/submission.json`, mục `three_lines`)
-1. Thiết kế giả định sổ cái hoàn tiền cập nhật kịp và các yêu cầu của cùng một khách được nhận diện nhất quán dù đến từ nhiều kênh.
-2. Cổng ghi NGĂN ghi nợ shop và chặn khoản tự động vượt trần theo khách/ngày khi dữ liệu sổ cái đầy đủ, còn giám sát và đối soát GIẢM thiệt hại tiếp diễn nếu phát sinh sai lệch.
-3. Vì dữ liệu là mock, trước Bước đánh giá 2 cần đo lại hoàn sai, ghi nợ shop, lỗi hãng oan, lộ PII, thời gian chờ giờ cao điểm, chi phí toàn phần và ROI theo kho trên pilot thật.
+1. Đội giả định DB tracking, chính sách, phê duyệt và sổ cái trong ngày chính xác, cập nhật kịp thời; ngoài thực tế cập nhật trễ hoặc nhiều hệ thống cùng hoàn tiền có thể làm cổng quyết định từ dữ liệu sai.
+2. Cổng ghi ngăn nhánh chỉ dẫn khách đổi payer sang MERCHANT và chặn khoản vượt quyền khi dữ liệu nguồn và kiểm tra hoạt động đúng; trần 300.000đ/khách/ngày chỉ giới hạn thiệt hại, không ngăn chia nhiều khách hoặc nhiều ngày, còn quy trình dừng phụ thuộc người phát hiện.
+3. Trước Gate 2 cần đo lại trên tải và LLM thật: hoàn sai, ghi nợ shop, PII qua kiểm mẫu/đối soát; độ trễ cập nhật sổ cái và phê duyệt; hàng chờ so SLA 60 phút, chi phí toàn phần so 7.500đ/ticket và ROI so 0,30, tách theo kho và tính cả luồng làm tay.
+

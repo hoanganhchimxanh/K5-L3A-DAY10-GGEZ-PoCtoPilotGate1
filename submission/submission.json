@@ -1,12 +1,17 @@
 {
-  "team": "",
-  "members": [],
-  "incident": "",
-  "decision_v1": "",
-  "decision_v2": "",
+  "team": "K5-L3A-DAY10-GGEZ-PoCtoPilotGate1",
+  "members": [
+    "NguyenHoangAnh-2A202603385",
+    "VoHuyHoang-2A202603397",
+    "NguyenTrungAnh-2A202603413",
+    "NguyenTuanHieu-2A202603374"
+  ],
+  "incident": "S2",
+  "decision_v1": "Cải tiến thêm",
+  "decision_v2": "Cải tiến thêm",
   "three_lines": {
-    "environment_assumption": "",
-    "reduce_or_prevent": "",
-    "measure_in_pilot": ""
+    "environment_assumption": "Đội giả định DB tracking, chính sách, phê duyệt và sổ cái trong ngày chính xác, cập nhật kịp thời; ngoài thực tế cập nhật trễ hoặc nhiều hệ thống cùng hoàn tiền có thể làm cổng quyết định từ dữ liệu sai.",
+    "reduce_or_prevent": "Cổng ghi ngăn nhánh chỉ dẫn khách đổi payer sang MERCHANT và chặn khoản vượt quyền khi dữ liệu nguồn và kiểm tra hoạt động đúng; trần 300.000đ/khách/ngày chỉ giới hạn thiệt hại, không ngăn chia nhiều khách hoặc nhiều ngày, còn quy trình dừng phụ thuộc người phát hiện.",
+    "measure_in_pilot": "Trước Gate 2 cần đo lại trên tải và LLM thật: hoàn sai, ghi nợ shop, PII qua kiểm mẫu/đối soát; độ trễ cập nhật sổ cái và phê duyệt; hàng chờ so SLA 60 phút, chi phí toàn phần so 7.500đ/ticket và ROI so 0,30, tách theo kho và tính cả luồng làm tay."
   }
 }

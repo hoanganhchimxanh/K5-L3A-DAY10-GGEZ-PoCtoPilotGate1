@@ -13,7 +13,7 @@ Họ tên đầy đủ và MSSV của **mọi** thành viên; thêm dòng nếu 
 
 | STT | Họ và tên | MSSV | Vai | Trưởng nhóm |
 | --: | --------- | ---- | --- | :---------: |
-|   1 | Nguyễn Hoàng Anh | 2A202603385 | Vận hành và pháp lý | ✓ |
+|   1 | Nguyễn Hoàng Anh | 2A202603385 | Kỹ sư cổng | ✓ |
 |   2 | Võ Huy Hoàng | 2A202603397 | Vận hành và pháp lý |  |
 |   3 | Nguyễn Trung Anh | 2A202603413 | Kỹ sư cổng |  |
 |   4 | Nguyễn Tuấn Hiếu | 2A202603374 | Sản phẩm và kinh doanh |  |

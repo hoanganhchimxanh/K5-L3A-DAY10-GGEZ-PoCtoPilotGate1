@@ -8,13 +8,13 @@
 
 | Người | MSSV | Vai |
 |---|---|---|
-| **Nguyễn Hoàng Anh** *(trưởng nhóm)* | 2A202603385 | Vận hành và pháp lý |
+| **Nguyễn Hoàng Anh** *(trưởng nhóm)* | 2A202603385 | Kỹ sư cổng |
 | **Võ Huy Hoàng** | 2A202603397 | Vận hành và pháp lý |
 | **Nguyễn Trung Anh** | 2A202603413 | Kỹ sư cổng |
 | **Nguyễn Tuấn Hiếu** | 2A202603374 | Sản phẩm và kinh doanh |
 
 > [!NOTE]
-> Vận hành và pháp lý có **2 người** (Hoàng Anh + Huy Hoàng) → chia đôi theo mục cụ thể bên dưới.
+> Kỹ sư cổng có **2 người** (Hoàng Anh + Trung Anh) → chia đôi theo mục cụ thể bên dưới.
 > Mọi **quyết định v1, v2** do **cả bàn** cùng chốt.
 
 ---
@@ -62,9 +62,9 @@
 | Câu | Nội dung tóm tắt | Người làm | Mục |
 |---|---|---|---|
 | **2.1** | Chạy mốc `base`, đọc report, ghi mã lần chạy | **Trung Anh** | Phiếu B · B0, B1 |
-| **2.2** | Trace `T-002@seed55`, điền bảng soát lỗi | **Trung Anh** | Phiếu B · B2 |
+| **2.2** | Trace `T-002@seed55`, điền bảng soát lỗi | **Hoàng Anh** | Phiếu B · B2 |
 | **2.3** | Bản đồ dữ liệu + ví dụ drift 3 tháng tới | **Tuấn Hiếu** | Phiếu B · B3 |
-| **2.4** | HAZOP mở rộng (≥3 dòng kỹ thuật + ≥2 ngoài kỹ thuật); checklist 9 nhóm việc lần 1 (có PIC tên) | **Hoàng Anh** + **Huy Hoàng** | Phiếu B · B4, B5 |
+| **2.4** | HAZOP mở rộng (≥3 dòng kỹ thuật + ≥2 ngoài kỹ thuật); checklist 9 nhóm việc lần 1 (có PIC tên) | **Huy Hoàng** | Phiếu B · B4, B5 |
 | **2.5** | Pre-mortem 4 lăng kính, chọn 2–3 lý do thành cổng | **Cả bàn** | Phiếu B · B6 |
 
 ---
@@ -73,15 +73,15 @@
 
 | Câu | Nội dung tóm tắt | Người làm | File/Mục |
 |---|---|---|---|
-| **2.6** | Code 2–3 cổng trong `guards.py` (`pre_guard` / `write_gate`); chạy eval + unittest | **Trung Anh** | `lab10/guards.py`; Phiếu B · B7.1 |
-| **2.7** | 2 bước tránh rò rỉ dữ liệu | **Trung Anh** | Phiếu B · B7.2 |
-| **2.8** | Viết 1 behavioral test + 2 ticket hiểm, chạy `--adhoc` | **Trung Anh** + **1 người không code** *(Tuấn Hiếu hoặc Huy Hoàng)* | Phiếu B · B7.3 |
+| **2.6** | Code 2–3 cổng trong `guards.py` (`pre_guard` / `write_gate`); chạy eval + unittest | **Trung Anh** + **Hoàng Anh** | `lab10/guards.py`; Phiếu B · B7.1 |
+| **2.7** | 2 bước tránh rò rỉ dữ liệu | **Hoàng Anh** | Phiếu B · B7.2 |
+| **2.8** | Viết 1 behavioral test + 2 ticket hiểm, chạy `--adhoc` | **Trung Anh** + **Hoàng Anh** | Phiếu B · B7.3 |
 | **2.9** | Điền `operating_gates.json` mục `business` (trần hoàn, ngân sách/ticket, phạm vi pilot, ROI) | **Tuấn Hiếu** | `config/operating_gates.json` → `business`; Phiếu B · B7.4 |
-| **2.10** | Điền mục `operations` + `legal`; viết runbook phần 1–3 + Giờ cao điểm | **Hoàng Anh** + **Huy Hoàng** | `config/operating_gates.json` → `operations`, `legal`; Phiếu B · B7.5, B7.6 |
+| **2.10** | Điền mục `operations` + `legal`; viết runbook phần 1–3 + Giờ cao điểm | **Huy Hoàng** | `config/operating_gates.json` → `operations`, `legal`; Phiếu B · B7.5, B7.6 |
 
 > [!TIP]
-> **Huy Hoàng** phụ trách phần `operations` (PIC, người trực, hàng chờ, kênh báo tin).
-> **Hoàng Anh** phụ trách phần `legal` + toàn bộ runbook 1–3.
+> **Trung Anh** phụ trách phần code chính (`write_gate`, chạy lệnh eval/trace).
+> **Hoàng Anh** phụ trách phần phân tích trace (2.2), behavioral test (2.7–2.8) và review cổng.
 
 ---
 
@@ -116,7 +116,7 @@
 
 | Câu | Nội dung tóm tắt | Người làm | Mục |
 |---|---|---|---|
-| **3.1** | Trace ≥2 ticket hỏng; bảng soát lỗi | **Trung Anh** (trace) + **Huy Hoàng** (phần riêng thẻ) | Phiếu C · C2, C3, C4 |
+| **3.1** | Trace ≥2 ticket hỏng; bảng soát lỗi | **Trung Anh** (trace) + **Hoàng Anh** (phân tích, phần riêng thẻ) | Phiếu C · C2, C3, C4 |
 | **3.2** | Viết 1 specification bị vi phạm → tác hại | **Tuấn Hiếu** | Phiếu C · C5 |
 | **3.3** | Giả định môi trường ngầm, có thể sai ngoài thực tế | **Huy Hoàng** | Phiếu C · C5 |
 | **3.4** | Fault tree trước khi sửa (≥2 nhánh, 2 tầng khác nhau) | **Cả bàn** | Phiếu C · C6 |
@@ -127,11 +127,11 @@
 
 | Câu | Nội dung tóm tắt | Người làm | File/Mục |
 |---|---|---|---|
-| **3.5 (code)** | Sửa `guards.py` cho nguyên nhân kỹ thuật | **Trung Anh** | `lab10/guards.py`; Phiếu C · C7 |
+| **3.5 (code)** | Sửa `guards.py` cho nguyên nhân kỹ thuật | **Trung Anh** + **Hoàng Anh** | `lab10/guards.py`; Phiếu C · C7 |
 | **3.5 (business)** | Sửa `operating_gates.json` mục `business` | **Tuấn Hiếu** | `config/operating_gates.json` |
-| **3.5 (ops/legal)** | Sửa `operating_gates.json` mục `operations`, `legal` | **Hoàng Anh** + **Huy Hoàng** | `config/operating_gates.json` |
-| **3.6** | Thêm chỉ số theo dõi mới trong `monitors.py` | **Trung Anh** | `lab10/monitors.py`; Phiếu C · C8 |
-| **3.7** | Fault tree sau sửa; ≥1 dòng Risk register; cập nhật checklist; runbook 4–5 | **Huy Hoàng** + **Hoàng Anh** | Phiếu C · C9, C10, C11 |
+| **3.5 (ops/legal)** | Sửa `operating_gates.json` mục `operations`, `legal` | **Huy Hoàng** | `config/operating_gates.json` |
+| **3.6** | Thêm chỉ số theo dõi mới trong `monitors.py` | **Hoàng Anh** | `lab10/monitors.py`; Phiếu C · C8 |
+| **3.7** | Fault tree sau sửa; ≥1 dòng Risk register; cập nhật checklist; runbook 4–5 | **Huy Hoàng** | Phiếu C · C9, C10, C11 |
 | Chạy kiểm tra | **Trung Anh** | `lab10.eval --suite Sx --stage after` + `lab10.grade` |
 
 ---
@@ -151,8 +151,8 @@
 
 | Việc | Người làm |
 |---|---|
-| Demo 3 mốc base · prepared · after | **Trung Anh** (chạy lệnh) + **Tuấn Hiếu** (trình bày số) |
-| Phản biện từ bàn kia (chạy ticket hiểm, đổi thử config) | **Trung Anh** xử lý live |
+| Demo 3 mốc base · prepared · after | **Trung Anh** (chạy lệnh) + **Hoàng Anh** (trình bày kỹ thuật) |
+| Phản biện từ bàn kia (chạy ticket hiểm, đổi thử config) | **Trung Anh** + **Hoàng Anh** xử lý live |
 | Trả số về bản v2, chạy lại `lab10.grade` + `check_submission` | **Trung Anh** + **Huy Hoàng** |
 | Mỗi thành viên nộp link repo trên LMS + viết exit ticket trong `TEAM.md` | **Từng người tự nộp** |
 
@@ -162,7 +162,7 @@
 
 | Người | Vai chính | Phụ trách trọng tâm |
 |---|---|---|
-| **Nguyễn Hoàng Anh** | Vận hành & Pháp lý | Telemetry (1.4), HAZOP & checklist (2.4), `legal` + runbook 1–3 (2.10), cổng vòng 2 ops/legal (3.5), push các mốc |
-| **Võ Huy Hoàng** | Vận hành & Pháp lý | Mục tiêu Oanh/Hạnh (1.2), `operations` config (2.10), phần riêng thẻ (3.1), giả định môi trường (3.3), `submission.json` + gom bài |
-| **Nguyễn Trung Anh** | Kỹ sư cổng | Offline metric (1.3), chạy tất cả lệnh eval/trace/grade, code `guards.py`, `monitors.py`, behavioral test (2.8), demo live |
+| **Nguyễn Hoàng Anh** | Kỹ sư cổng | Telemetry (1.4), trace & phân tích (2.2, 3.1), behavioral test (2.7–2.8), code cổng vòng 2 (3.5), `monitors.py` (3.6), push các mốc |
+| **Võ Huy Hoàng** | Vận hành & Pháp lý | Mục tiêu Oanh/Hạnh (1.2), HAZOP & checklist (2.4), `operations` + `legal` config (2.10, 3.5), runbook 4–5 (3.7), `submission.json` + gom bài |
+| **Nguyễn Trung Anh** | Kỹ sư cổng | Offline metric (1.3), chạy tất cả lệnh eval/trace/grade, code `guards.py` chính (2.6), `monitors.py` cơ bản (3.6 hỗ trợ), demo live |
 | **Nguyễn Tuấn Hiếu** | Sản phẩm & Kinh doanh | Mục tiêu hệ thống (1.1), Bản tiêu chí + ký (1.6), bản đồ dữ liệu (2.3), `business` config (2.9, 3.5), specification (3.2), quyết định v1+v2 |

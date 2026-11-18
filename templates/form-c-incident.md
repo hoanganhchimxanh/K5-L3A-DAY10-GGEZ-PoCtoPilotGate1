@@ -255,9 +255,9 @@ Kiểm bằng gì (hàm trong `guards.py`, dòng report nào): …
 
 ### Câu 3.3 · Một giả định về môi trường mà người thiết kế đã ngầm tin, nhưng nhiều khả năng sai ngoài thực tế
 
-Giả định (thứ nằm NGOÀI phần mềm): …
+Giả định (thứ nằm NGOÀI phần mềm): Khách hàng chỉ nhập thông tin mô tả yêu cầu trong ticket và ghi chú đặt hàng (`checkout_note`), không cố ý chèn chỉ dẫn giả danh nhân viên hoặc người có thẩm quyền để yêu cầu hoàn toàn bộ đơn, bỏ qua phê duyệt hay chuyển bên chịu tiền sang shop.
 
-Vì sao có thể sai: …
+Vì sao có thể sai: Ticket và ghi chú đặt hàng do khách kiểm soát, nên có thể chứa chỉ dẫn thao túng hoặc nội dung sao chép từ nguồn khác. Ticket nhìn bình thường cũng không bảo đảm ghi chú đặt hàng an toàn. Nếu agent coi những nội dung này là chỉ thị có thẩm quyền, nó có thể hoàn sai và ghi nợ shop, phù hợp với triệu chứng trên thẻ S2.
 
 ---
 

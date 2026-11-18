@@ -34,6 +34,8 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 | 3 | `R-base-prepared-20261118-163009-340614` | base · prepared | (cổng vòng 1 đã chốt, hash `c5aff4c2`; code và config giống dòng 5) | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | `lab10.gate` đạt cả 9 ngưỡng đã ký (exit 0), không vượt trần; số trùng khớp dòng 5, đúng như kỳ vọng vì bản chụp chính là cấu hình đó |
 | 4 | `R-base-after-20261118-162310-5c1171` | base · after | Giữ nguyên code của dòng 2, chỉ đổi config `business` (trần 1.500.000đ/ngày, ngân sách LLM 900đ/ticket, phạm vi kho HN + HCM, ROI tối thiểu 0,3) | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | Độ phủ còn 0,59 (13/22 ticket mỗi ngày). Chi phí mỗi ticket tăng 4.202đ → 5.165đ và ROI giảm 1,38 → 0,94, vì phí người trực chia cho ít ticket hơn; vẫn đạt ngưỡng đã ký (≤ 7.500đ, ≥ 0,3), không vượt trần |
 | 5 | `R-base-after-20261118-162902-340614` | base · after | Giữ code và `business`, chỉ thêm config `operations` + `legal` (PIC NV-TUNG, người duyệt NV-HANH, 1 người trực, 6 ca/giờ, chờ tối đa 60 phút, kiểm mẫu 10%, chặn `customer_note` và `recipient_contact`, lỗi hãng phải có nguyên nhân trong tracking) | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | Kiểm mẫu 10% đưa thêm 1 ca/ngày vào hàng chờ (tỉ lệ vào hàng chờ 0,3077), chi phí lên 5.934đ/ticket, ROI xuống 0,69; vẫn 0 ca ùn, không vượt trần, đạt mọi ngưỡng đã ký. Đây là cấu hình sẽ chốt làm mốc prepared |
+| 6 | `R-base-after-20261118-162804-e2c5e5` | base · after | Đo lại cấu hình business trước khi nhận cập nhật operations/legal của dòng 5; không đổi code/config so với dòng 4 | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | Bản đối chiếu ban đầu khi soạn B8: chi phí 5.165đ/ticket, ROI 0,94. Số này có trước cấu hình kiểm mẫu cuối vòng; quyết định B8 dùng prepared ở dòng 3/7. |
+| 7 | `R-base-prepared-20261118-163321-fb31c8` | base · prepared | Không đổi bản chụp; kiểm tra lại checkpoint `c5aff4c2` sau khi ghép cập nhật vận hành/pháp lý để hoàn thiện B8 | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | Khớp kết quả prepared dòng 3: coverage 0,5909, chi phí 5.934đ/ticket, ROI 0,69, ùn 0; cả 9 ngưỡng đạt. Nhóm không tìm được đơn vẫn tốn 10.359đ/ticket, cần đọc riêng trước quyết định. |
 
 ---
 
@@ -429,6 +431,8 @@ Lượng ticket có thể dồn gấp ba trong một giờ (ngày sale, sau bão
 
 ## B8 · Chốt cổng vòng 1 và quyết định Gate 1 · v1 (phút 105–115)
 
+**Người soạn:** Nguyễn Tuấn Hiếu — 2A202603374, Sản phẩm và kinh doanh. **Trạng thái: dự thảo đề xuất v1, chờ cả bàn chốt.** Đã ghép cấu hình operations/legal, runbook phần 1–3 và checkpoint `c5aff4c2` của nhóm; kiểm tra lại prepared ở B0 dòng 7. Phần giờ cao điểm B7.6 và bằng chứng bố trí người cho ticket ngoài phạm vi vẫn cần hoàn thiện. Số liệu dưới đây dùng prepared cuối vòng, không dùng lại mức chi phí 5.165đ/ROI 0,94 trước khi bật kiểm mẫu.
+
 Làm đúng thứ tự:
 
 ```bash
@@ -446,22 +450,26 @@ bao nhiêu thời gian? (3) Có phần nào của dự án không nên làm ti�
 
 | | **v1** (phút 105–115, TRƯỚC khi nhận thẻ sự cố) |
 |---|---|
-| Commit ký tiêu chí (message `Sign acceptance criteria`; hash commit, tuỳ chọn) | `784e17a`, ký lúc 2026-11-18 15:41:02, hash tiêu chí `042370e4` |
-| Hash chốt cổng vòng 1 (8 ký tự lệnh `lab10.checkpoint` in ra, tuỳ chọn) | `c5aff4c2` |
-| Mã lần chạy dùng làm bằng chứng | bộ nền, mốc base: `R-base-before-20261118-154411-b45eeb` · bộ nền với cổng vòng 1 (prepared): `R-base-prepared-20261118-163009-340614` |
-| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | Không ("vượt trần: không"). Mốc prepared: 0 ca ùn, chờ lâu nhất 0 phút; chi phí 5.934đ/ticket (làm tay 10.000đ); ROI 0,69; hoàn tự động 155.000đ/ngày (trần bàn đặt 1.500.000đ); tiền LLM nhiều nhất 670đ/ticket (trần 1.500đ); 0 lộ PII, 0 lỗi hãng oan |
-| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | Số liệu mốc prepared: mọi kho và hãng đều pass_rate 1,0, không hoàn sai, không lỗi oan, không lộ PII. Xấu nhất về chi phí là nhóm kho "?" (`T-018`, đơn `O-9999` không tồn tại): 10.359đ/ticket, đắt hơn làm tay. Trong hai kho pilot, HCM 4.567đ/ticket, HN 1.993đ/ticket. Ở mốc base, HCM / VNX là nơi có ca hỏng `T-002@55`. *(Phần "quyết định có đổi không": người viết v1 điền)* |
-| Quyết định (khoanh một) | Tiếp tục · Thu hẹp · Cải tiến thêm · Dừng |
-| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | |
-| Bằng chứng 2 | |
-| Bằng chứng 3 | |
-| Khớp dòng nào trong `decision_rule` đã ký? | |
-| Nếu Thu hẹp: cắt phần nào, vì sao | |
-| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn | |
-| Nếu Dừng: bài học ghi lại | |
-| Một bằng chứng còn thiếu (thứ bộ nền chưa đo được) | |
-| Ngày quyết định lại (trừ khi Dừng) | |
-| PIC ký | |
+| Commit ký tiêu chí (message `Sign acceptance criteria`; hash commit, tuỳ chọn) | `784e17a` — `Sign acceptance criteria`, ký lúc 18/11/2026 15:41:02. Hash file tiêu chí khớp lock `042370e4ef628c526b7816ccc14c032a0efbed470b57a992cdc96a8cb9da6a8c`; ngưỡng giữ nguyên từ lúc ký. |
+| Hash chốt cổng vòng 1 (8 ký tự lệnh `lab10.checkpoint` in ra, tuỳ chọn) | **`c5aff4c2`**, chốt lúc 18/11/2026 16:30:09; đã kiểm hai bản chụp khớp hash trong `config/round1.lock`. |
+| Mã lần chạy dùng làm bằng chứng | Base: `R-base-before-20261118-154411-b45eeb` (B0 dòng 1). Prepared của nhóm: `R-base-prepared-20261118-163009-340614` (dòng 3); kiểm tra lại cùng bản chụp: **`R-base-prepared-20261118-163321-fb31c8`** (dòng 7), số liệu khớp nhau. |
+| Còn dòng "vượt trần" nào trong report? (hàng chờ, chi phí, ROI, trần tiền, pháp lý) | Prepared ghi **không có dòng vượt trần**, cả 9 phép so ngưỡng đạt: chi phí **5.934đ/ticket**, ROI **0,69**, ùn **0**, chờ lâu nhất **0 phút**, hoàn tự động tối đa **155.000đ/ngày**, tiền máy cao nhất **670đ**, ba chỉ số an toàn bằng **0**. Tuy vậy, nhóm kho `?` tốn **10.359đ/ticket**, cao hơn làm tay 10.000đ; code không đưa nhóm `?` vào danh sách vi phạm theo kho nên phải đọc riêng. |
+| Kho hoặc hãng có số xấu nhất: ____. Nếu chỉ nhìn phân khúc này, quyết định có đổi không? *(Đọc khối "theo kho và hãng" ở cuối output `lab10.eval` / `lab10.grade`, hoặc mục `by_segment` trong `report.json`.)* | Xấu nhất về kinh tế là nhóm **không tra được đơn (`?`)**, 10.359đ/ticket, 100% cần duyệt. Trong hai kho xác định, HCM **4.567đ/ticket**, HN **1.993đ/ticket**; số theo kho chưa phân bổ phí giữ chỗ nên không thay cho giá toàn phần 5.934đ. Các hãng GHSH, LGX, VNX đều pass_rate=1,0, ba chỉ số an toàn bằng 0. Chỉ xét nhóm `?` vẫn giữ đề xuất Cải tiến thêm: luồng AI cho nhóm này chưa có lợi so với làm tay. |
+| Quyết định (khoanh một) | **Đề xuất: Cải tiến thêm** — chưa mở pilot thật; chờ hoàn thiện bằng chứng vận hành và cả bàn chốt v1. |
+| Bằng chứng 1: mã lần chạy + chỉ số bắt buộc nào đạt / chưa | `R-base-prepared-20261118-163321-fb31c8`: pass_rate **1,0 (65/65)**, CI95% **[1,0; 1,0]** ≥ sàn 0,97; pass_k **1,0 (13/13)** ≥ sàn 0,95. Hoàn sai **0đ**, lỗi hãng oan **0**, PII **0**, đều đạt. B0 dòng 1 trước cổng có 20.000đ hoàn sai và 1 lỗi hãng oan; phạm vi hiện tại còn 13/22 ticket nên không dùng chênh lệch điểm tổng để tuyên bố cải thiện có ý nghĩa thống kê hoặc chứng minh 9 ticket ngoài phạm vi đã được sửa. |
+| Bằng chứng 2 | Cùng report prepared: chi phí toàn phần **5.934đ/ticket ≤ 7.500đ**, ROI **0,69 ≥ 0,30**, tiền máy cao nhất **670đ ≤ 1.500đ**; hoàn tự động ngày cao nhất **155.000đ ≤ 1.500.000đ**, dưới ngân sách Finance 2.000.000đ. Coverage **0,5909**: 13 ticket/ngày trong phạm vi, 9 ngoài phạm vi vẫn cần làm tay. |
+| Bằng chứng 3 | Cùng report prepared: escalation **0,2308 ≤ 0,25**, 3 ca/ngày do máy chuyển người; kiểm mẫu 10% thêm 1 ca/ngày, tổng **4 ca/ngày**, `review_rate=0,3077`. Một người trực, công suất 6 ca/giờ, chờ lâu nhất **0 phút**, ùn **0**. Đã có PIC NV-TUNG, người duyệt NV-HANH và runbook 1–3; nhưng B7.6 còn trống, runbook chưa có bằng chứng bố trí nhân sự riêng cho 9 ticket ngoài phạm vi và chưa đo tải dồn. |
+| Khớp dòng nào trong `decision_rule` đã ký? | **Cải tiến thêm**: các ngưỡng số đã đạt trên prepared nhưng còn thiếu bằng chứng để mở pilot về tải dồn, người nhận luồng ngoài phạm vi và xử lý phân khúc không có lợi. Có giả thuyết, PIC và hạn tối đa 2 vòng sửa hoặc 24 giờ; không sửa ngưỡng đã ký để bỏ qua các điểm này. |
+| Nếu Thu hẹp: cắt phần nào, vì sao | Chưa chọn Thu hẹp ở quyết định này. Phạm vi thử đã cấu hình HN/HCM, giữ 13/22 ticket theo bộ lọc; 9 ticket DN/CT theo luồng tay. Nếu loại thêm ca thiếu đơn khỏi luồng AI phải mô tả cách phân luồng, công bố coverage mới và đo lại; không xóa ca khỏi bộ đánh giá để làm đẹp điểm. |
+| Nếu Cải tiến thêm: giả thuyết cụ thể + hạn | **Giả thuyết kinh doanh:** ca không tra được đơn luôn cần người nhưng AI tốn thêm tiền máy, nên nên tiếp nhận ở luồng xác minh thủ công trước khi đọc nội dung bằng LLM; giảm tiền đọc không xóa được công duyệt 10.000đ/ca. Hiếu cùng kỹ sư làm rõ phân luồng và đo riêng chi phí/coverage. **Bằng chứng vận hành:** Huy Hoàng hoàn thiện B7.6, NV-TUNG/NV-HANH xác nhận người nhận và năng lực luồng ngoài phạm vi; kỹ sư kiểm tải dồn theo kế hoạch. Giữ nguyên bản chụp prepared, mọi thử/sửa tiếp dùng bản hiện tại và mốc after, ghi lại report. Hạn đề xuất **19/11/2026, 10:00 GMT+7**, không quá 2 vòng sửa hoặc 24 giờ từ lúc cả bàn chốt quyết định, mốc nào đến trước. |
+| Nếu Dừng: bài học ghi lại | Chưa đề xuất Dừng toàn bộ: HN/HCM có tín hiệu chất lượng và kinh tế tốt trên mock. Bài học: chỉ số tổng hợp đạt vẫn có thể che một nhóm không có lợi; cấu hình người trực và runbook chưa chứng minh đã bố trí người thật. Nếu chạm điều kiện Dừng đã ký thì áp dụng ngay. |
+| Một bằng chứng còn thiếu (thứ bộ nền chưa đo được) | Lưu lượng dồn giờ cao điểm, công kiểm lại khi nhân viên chưa tin trợ lý, tracking sai/chậm, chi phí LLM thật và việc người được phân công thực sự nhận ca. Cần quan sát pilot có kiểm soát trước khi mở rộng; 65 trial MockLLM với CI [1;1] không chứng minh an toàn tuyệt đối ngoài thực tế. |
+| Ngày quyết định lại (trừ khi Dừng) | Đề xuất **19/11/2026 lúc 10:00 GMT+7**, hoặc sớm hơn khi bổ sung đủ bằng chứng nêu trên; cả bàn xác nhận khi chốt. |
+| PIC ký | **Nguyễn Tuấn Hiếu — 2A202603374**, người soạn đề xuất. **Chờ cả bàn thống nhất và ghi nhận chữ ký quyết định**; chưa xác nhận đã ký v1. |
+
+**Chi phí cả luồng để bàn cân nhắc:** prepared tính chi phí/ROI trên 13 ticket trong phạm vi. Tiền máy **7.147đ** + công duyệt/kiểm mẫu **40.000đ** + phí trực **30.000đ** = **77.147đ/ngày**; cộng 9 ticket làm tay × 10.000đ = **90.000đ**, tổng khoảng **167.147đ/22 ticket**, tương đương **7.598đ/ticket**. Đây là ước tính ghép từ report và giả định chi phí tay; sàn/trần trong gate hiện đánh giá phạm vi pilot, nên phải phân biệt với giá thành cả luồng và đo thêm thời gian chờ ngoài phạm vi.
+
+**Để cả bàn chốt v1:** đọc prepared tại B0 dòng 3/7, hoàn thiện B7.6 và xác nhận năng lực tiếp nhận ngoài phạm vi, thống nhất cách xử lý nhóm `?`, sau đó Hiếu ghi nhận quyết định và PIC ký. Giữ nguyên checkpoint `c5aff4c2`; nếu thử biện pháp mới thì chạy mốc after, không chụp lại hay sửa bản prepared. Cập nhật phát sinh sau v1 đã chốt được ghi ở Phiếu C theo quy trình vòng 2.
 
 Xong v1 thì lưu và đẩy một bản (sau mốc này không sửa cột v1):
 

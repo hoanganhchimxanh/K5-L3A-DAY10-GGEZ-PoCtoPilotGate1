@@ -20,7 +20,9 @@ rồi mới chạy đánh giá. Khối 1 không sửa code.
 
 ### Câu 1.1 · Một mục tiêu cấp hệ thống (khác "model trả lời đúng")
 
-> …
+> Bảo đảm yêu cầu hoàn tiền giao trễ được giải quyết trọn vẹn và an toàn: khách nhận đúng quyền lợi theo chính sách hiện hành, khoản hoàn được ghi đúng thẩm quyền và có xét lịch sử hoàn tiền, lời xác nhận với khách khớp sổ cái, đồng thời không làm lộ dữ liệu khách hàng.
+
+Căn cứ: [PRD v1.1 §3 — Định nghĩa chạy đúng](../docs/PRD_v1.1.md#3-định-nghĩa-chạy-đúng), với các yêu cầu về đúng số tiền, không vượt quyền phê duyệt, lời trả lời khớp sổ cái và không lộ thông tin bí mật.
 
 ### Câu 1.2 · Mục tiêu nhìn từ hai người
 

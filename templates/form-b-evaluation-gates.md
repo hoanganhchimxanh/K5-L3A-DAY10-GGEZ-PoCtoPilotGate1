@@ -32,7 +32,7 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 | 1 | `R-base-before-20261118-154411-b45eeb` | base · base | (baseline, chưa có cổng) | 0,9909 (109/110) [0,9727; 1,0] | 0,9545 (21/22) | 20.000đ · 1 · 0 | 0,2273 | Trượt 2 ngưỡng an toàn đã ký chỉ vì một ca `T-002@55`: model tin số ngày trễ khách ghi (5) thay cho tracking (2), nên hoàn sai 20.000đ và ghi lỗi oan cho VNX |
 | 2 | `R-base-after-20261118-161014-2393eb` | base · after | Thêm 3 cổng code trong `lab10/guards.py`, config chưa đổi (cổng vòng 1, thử trước khi chốt) | 1,0 (110/110) [1,0; 1,0] | 1,0 (22/22) | 0đ · 0 · 0 | 0,2273 | `T-002@55` từ hỏng sang đạt (bị từ chối hoàn, không ghi lỗi hãng), 0 ca mới hỏng; tỉ lệ chuyển người không tăng. So theo cặp ticket@seed nên không cần dựa vào việc pass_rate tăng (xem câu 1.5) |
 | 3 | | base · prepared | (cổng vòng 1 đã chốt) | | | | | |
-| 4 | | | | | | | | |
+| 4 | `R-base-after-20261118-162310-5c1171` | base · after | Giữ nguyên code của dòng 2, chỉ đổi config `business` (trần 1.500.000đ/ngày, ngân sách LLM 900đ/ticket, phạm vi kho HN + HCM, ROI tối thiểu 0,3) | 1,0 (65/65) [1,0; 1,0] | 1,0 (13/13) | 0đ · 0 · 0 | 0,2308 | Độ phủ còn 0,59 (13/22 ticket mỗi ngày). Chi phí mỗi ticket tăng 4.202đ → 5.165đ và ROI giảm 1,38 → 0,94, vì phí người trực chia cho ít ticket hơn; vẫn đạt ngưỡng đã ký (≤ 7.500đ, ≥ 0,3), không vượt trần |
 
 ---
 

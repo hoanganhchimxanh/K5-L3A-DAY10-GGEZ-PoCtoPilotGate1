@@ -345,10 +345,20 @@ Mỗi con số kèm một câu lý do, lấy từ `data/world.json` → `ops_lim
 
 | Khoá | Giá trị bàn đặt | Lý do (một câu, có số) |
 |---|---|---|
-| `business.daily_refund_cap_vnd` | | |
-| `business.cost_budget_per_ticket_vnd` | | |
-| `business.pilot_scope` (all / warehouse / percent) | | |
-| `business.roi_min` | | |
+| `business.daily_refund_cap_vnd` | **1.500.000đ/ngày** | Giữ đúng cổng kinh doanh đã chọn ở B6, dùng 75% ngân sách tự động **2.000.000đ/ngày** tại `ops_limits.daily_auto_refund_budget_vnd` và giữ **500.000đ** đệm biến động; khoản làm vượt trần chuyển người duyệt, không tự động tiêu phần đệm. |
+| `business.cost_budget_per_ticket_vnd` | **900đ/ticket tiền máy** | Trần `ops_limits.max_llm_cost_per_ticket_vnd` là **1.500đ**; dành **600đ** cho tối đa hai lượt kiểm chính sách **2 × 200đ**, xác nhận **100đ** và ghi chú **100đ** theo `ops_facts.llm_cost`, vì code kiểm budget khi đọc nội dung nhưng các bước sau còn cộng phí. |
+| `business.pilot_scope` (all / warehouse / percent) | **`{"mode":"warehouse","warehouses":["HN","HCM"],"percent":100}`** | Chọn **2 kho đơn lẻ HN/HCM** cho pilot hai depot; với năng lực tham chiếu **6 ca duyệt/người/giờ**, **480 phút/ca** và phí giữ chỗ **30.000đ/người/ca** trong `ops_facts`, giới hạn phạm vi để nhóm vận hành xác nhận được người trực trước khi mở thêm kho; đây là phạm vi thử ban đầu, chưa chứng minh hai kho có kinh tế tốt hơn kho khác. |
+| `business.roi_min` | **0,30** | Giữ đúng sàn ROI đã ký ở câu 1.6: làm tay **10.000đ/ticket** theo `ops_facts`, trần chi phí toàn phần **7.500đ/ticket** và hoàn sai bằng 0 tương ứng ROI **(10.000 − 7.500) / 7.500 ≈ 0,333**, có đệm so với sàn 0,30. |
+
+**Phạm vi và đường xử lý:** `mode="warehouse"` dùng danh sách kho; `percent=100` không có nghĩa nhận 100% ticket toàn hệ thống. Ticket của DN, CT và HCM-B2B tiếp tục theo luồng CSKH thủ công; công suất và người nhận do Huy Hoàng xác nhận ở B7.5–B7.6. HCM vẫn nằm trong pilot dù baseline có ca hỏng tại đây: Kỹ sư cổng phải sửa nguyên nhân, không loại kho để che lỗi an toàn.
+
+Đếm tĩnh bộ nền có **7 ticket HN, 5 HCM, 5 DN, 4 CT và 1 ca không tìm được đơn**. Hàm `in_scope()` vẫn cho ca không tìm được đơn đi tiếp, nên cấu hình lọc **13/22 ticket, khoảng 59,1%**, trong đó 12 ticket thuộc hai kho và 1 ca thiếu đơn cần xử lý an toàn. Đây là cỡ mẫu theo dữ liệu đầu vào, chưa phải kết quả eval; khi đọc report phải công bố coverage thực đo. Không sửa bộ lọc hoặc viết ngoại lệ theo mã ticket trong phần kinh doanh.
+
+**Cách các cổng hoạt động:** tool `issue_refund` đã hỗ trợ trần ngày: nếu tổng đã hoàn tự động cộng khoản mới vượt **1.500.000đ**, khoản mới không được ghi tự động và ca chuyển người. Khoản mang `approval_id` đi theo nhánh phê duyệt; Kỹ sư cổng cần kiểm phê duyệt hợp lệ cho đúng đối tượng, số tiền và thời hạn để tránh lách trần. Không cộng tiền qua cả 5 seed để so với ngân sách một ngày; đọc `ops.refund.auto_refund_day_max_vnd`.
+
+Ngân sách **900đ** được agent kiểm khi đọc ticket/ghi chú đơn hàng; phần dự phòng **600đ** tính theo đường đi tối đa và biểu phí mock hiện tại. Nếu giá hoặc cách gọi thay đổi, cần tính lại ngân sách và đối chiếu `ops.cost.llm_cost_max_per_ticket_vnd` với trần **1.500đ**. Mức **7.500đ/ticket** đã ký là chi phí toàn phần gồm tiền máy, công duyệt/kiểm lại và phí người trực; không thay bằng ngân sách tiền máy 900đ.
+
+Sàn ROI chỉ làm report báo vi phạm khi chưa đạt, không tự tắt công cụ. Trước B8, Hiếu cần đọc ROI, chi phí toàn phần, hàng chờ, coverage và phân khúc kho/hãng; cộng thêm chi phí làm tay của phần ngoài phạm vi khi đánh giá lợi ích toàn hệ thống. Các giá trị trên là cấu hình vòng 1 để kiểm chứng, chưa chứng minh đã đủ điều kiện Tiếp tục; số người trực, PIC, SLA và các cổng pháp lý được hoàn thiện riêng theo phân công.
 
 ### B7.5 · Câu 2.10 · Cổng con người, vận hành, pháp lý + Runbook phần 1–3
 
